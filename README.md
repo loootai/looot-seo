@@ -126,7 +126,7 @@ Depth costs pages. The app assumes Google returns 10 organic results per call, s
 
 Tested, with looot mocked:
 
-- `npm test`: 105 unit tests. The client, the cap guard (a $0.010 cap over 42 calls at $0.001 makes exactly 10 calls and skips 32), the quote and run routes, the position rule, visibility, and one adapter per pinned operation.
+- `npm test`: 107 unit tests. The client, the cap guard (a $0.010 cap over 42 calls at $0.001 makes exactly 10 calls and skips 32), the quote and run routes, the position rule, visibility, and one adapter per pinned operation.
 - `npm run test:rls`: applies the migration to a throwaway local Postgres and checks, with two users, that neither can read, change or attach rows to the other's data, and that `anon` sees nothing. It needs `initdb`, `pg_ctl` and `psql`, and skips with a note when they are missing.
 - `tsc --noEmit`, `eslint .`, `next build`, and the bundle grep above.
 
