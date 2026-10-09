@@ -1,0 +1,39 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "version": "0.1",
+ "status_code": 20000,
+ "tasks": [
+  {
+   "status_code": 20000,
+   "status_message": "Ok.",
+   "result": [
+    {
+     "items_count": 2,
+     "items": [
+      {
+       "type": "backlinks_referring_domain",
+       "domain": "homebaristaforum.net",
+       "rank": 690,
+       "backlinks": 40,
+       "first_seen": "2025-08-21 00:00:00 +00:00",
+       "lost_date": null,
+       "referring_links_attributes": {
+        "nofollow": 22
+       }
+      },
+      {
+       "type": "backlinks_referring_domain",
+       "domain": "slowmorningmag.com",
+       "rank": 71,
+       "backlinks": 10,
+       "first_seen": "2026-06-03 00:00:00 +00:00",
+       "referring_links_attributes": null
+      }
+     ],
+     "target": "kestrelcoffee.co",
+     "total_count": 412
+    }
+   ]
+  }
+ ]
+}

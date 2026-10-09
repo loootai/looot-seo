@@ -1,0 +1,46 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "success": true,
+ "result": {
+  "organicResults": [
+   {
+    "position": 1,
+    "title": "Best coffee beans for espresso",
+    "link": "https://northbeancoffee.com/learn/espresso-beans",
+    "snippet": "Medium-dark roasts pull the most forgiving shots."
+   },
+   {
+    "position": 2,
+    "title": "Espresso beans | Kestrel Coffee",
+    "link": "https://www.kestrelcoffee.co/coffee/espresso",
+    "snippet": "Three espresso roasts, from chocolatey to bright."
+   }
+  ],
+  "aioverview": {
+   "text": "For espresso, most people do best with a medium-dark roast used within four weeks of the roast date.",
+   "sources": [
+    {
+     "label": "Espresso beans | Kestrel Coffee",
+     "url": "https://www.kestrelcoffee.co/coffee/espresso"
+    },
+    {
+     "label": "Espresso - Wikipedia",
+     "url": "https://en.wikipedia.org/wiki/Espresso"
+    }
+   ]
+  },
+  "peopleAlsoAsk": [
+   {
+    "question": "Can you use any beans for espresso?",
+    "answer": "Yes, but lighter roasts are harder to dial in.",
+    "url": "https://roastwell.com/blog/any-beans-espresso"
+   }
+  ],
+  "relatedSearches": [
+   "best espresso beans for beginners",
+   {
+    "query": "espresso beans vs coffee beans"
+   }
+  ]
+ }
+}

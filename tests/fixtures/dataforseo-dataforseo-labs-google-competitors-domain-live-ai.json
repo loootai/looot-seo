@@ -1,0 +1,37 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "version": "0.1",
+ "status_code": 20000,
+ "tasks": [
+  {
+   "status_code": 20000,
+   "status_message": "Ok.",
+   "result": [
+    {
+     "items_count": 2,
+     "items": [
+      {
+       "se_type": "google",
+       "domain": "www.roastwell.com",
+       "avg_position": 14.6,
+       "sum_position": 7446,
+       "intersections": 510,
+       "full_domain_metrics": {
+        "organic": {
+         "count": 4200
+        }
+       }
+      },
+      {
+       "se_type": "google",
+       "domain": "northbeancoffee.com",
+       "avg_position": 18.2,
+       "intersections": 388
+      }
+     ],
+     "target": "kestrelcoffee.co"
+    }
+   ]
+  }
+ ]
+}

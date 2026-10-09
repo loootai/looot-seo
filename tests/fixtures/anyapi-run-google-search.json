@@ -1,0 +1,31 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "data": {
+  "organic_results": [
+   {
+    "position": 1,
+    "title": "Physio Leeds | Rivergate",
+    "url": "https://rivergatephysio.co.uk/",
+    "description": "Appointments within 48 hours."
+   },
+   {
+    "position": 2,
+    "title": "Fernhill Physio, Headingley",
+    "url": "https://www.fernhillphysio.co.uk/physio-leeds",
+    "description": "Sports injury and back pain clinic."
+   }
+  ],
+  "people_also_ask": [
+   {
+    "question": "How much does a physio cost in Leeds?",
+    "snippet": "Between 45 and 70 pounds for a first visit.",
+    "link": "https://bodyworksleeds.co.uk/prices"
+   }
+  ],
+  "related_searches": [
+   {
+    "query": "physio leeds city centre"
+   }
+  ]
+ }
+}

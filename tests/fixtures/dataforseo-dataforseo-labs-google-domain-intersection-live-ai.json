@@ -1,0 +1,54 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "version": "0.1",
+ "status_code": 20000,
+ "tasks": [
+  {
+   "status_code": 20000,
+   "status_message": "Ok.",
+   "result": [
+    {
+     "items_count": 2,
+     "items": [
+      {
+       "se_type": "google",
+       "keyword_data": {
+        "keyword": "decaf swiss water process beans",
+        "keyword_info": {
+         "search_volume": 1300
+        }
+       },
+       "first_domain_serp_element": {
+        "type": "organic",
+        "rank_group": 1,
+        "rank_absolute": 2
+       },
+       "second_domain_serp_element": {
+        "type": "organic",
+        "rank_group": 7,
+        "rank_absolute": 9
+       }
+      },
+      {
+       "se_type": "google",
+       "keyword_data": {
+        "keyword": "whole bean coffee delivery",
+        "keyword_info": {
+         "search_volume": 4400
+        }
+       },
+       "first_domain_serp_element": {
+        "rank_absolute": 21
+       },
+       "second_domain_serp_element": {
+        "rank_group": 4
+       }
+      }
+     ],
+     "target1": "kestrelcoffee.co",
+     "target2": "roastwell.com"
+    }
+   ]
+  }
+ ]
+}

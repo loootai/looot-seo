@@ -1,0 +1,33 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "version": "0.1",
+ "status_code": 20000,
+ "tasks": [
+  {
+   "status_code": 20000,
+   "status_message": "Ok.",
+   "result": [
+    {
+     "items_count": 3,
+     "items": [
+      {
+       "se_type": "google",
+       "keyword": "single origin coffee subscription",
+       "keyword_difficulty": 41
+      },
+      {
+       "se_type": "google",
+       "keyword": "cold brew coffee ratio",
+       "keyword_difficulty": 34
+      },
+      {
+       "se_type": "google",
+       "keyword": "kestrel coffee",
+       "keyword_difficulty": null
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

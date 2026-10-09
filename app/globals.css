@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f7f8f5;
+  --surface: #ffffff;
+  --raised: #ffffff;
+  --rule: #e3e7e0;
+  --rule-strong: #cfd6cc;
+  --text: #0b2e22;
+  --muted: #56695f;
+  --brand: #0b4a35;
+  --brand-hover: #0e5a41;
+  --brand-fg: #f7f8f5;
+  --accent: #12a06a;
+  --accent-text: #0a7a50;
+  --neg: #b4472f;
+  --warn: #8a5f00;
+  --hover: #f1f4ee;
+  --selected: #e7f3ec;
+  --band-1: #8fd3b4;
+  --band-2: #bfe6d3;
+  --band-3: #dcf1e6;
+  --band-4: #eef7f2;
+  --band-0: #eceeea;
+  --chart-1: #12a06a;
+  --chart-2: #2f6fde;
+  --chart-3: #d98a1f;
+  --chart-4: #b4472f;
+  --chart-5: #3b8c8c;
+  --chart-6: #7a8b2e;
+  --chart-7: #8a5a44;
+  --chart-8: #5f6b7a;
+  --shadow: 0 12px 32px -12px rgb(11 46 34 / 0.22), 0 2px 6px -2px rgb(11 46 34 / 0.08);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #08130f;
+  --surface: #0c1b15;
+  --raised: #11241c;
+  --rule: #1c3229;
+  --rule-strong: #2a4539;
+  --text: #e8efea;
+  --muted: #8fa59a;
+  --brand: #12a06a;
+  --brand-hover: #18b277;
+  --brand-fg: #08130f;
+  --accent: #2fc48a;
+  --accent-text: #2fc48a;
+  --neg: #e07a5f;
+  --warn: #e0b04a;
+  --hover: #12251d;
+  --selected: #123024;
+  --band-1: #1c7a55;
+  --band-2: #17573f;
+  --band-3: #143f30;
+  --band-4: #112c23;
+  --band-0: #17231e;
+  --chart-1: #2fc48a;
+  --chart-2: #6c9bf0;
+  --chart-3: #e4a544;
+  --chart-4: #e07a5f;
+  --chart-5: #5fb3b3;
+  --chart-6: #a5b85a;
+  --chart-7: #c08d74;
+  --chart-8: #94a3b5;
+  --shadow: 0 16px 40px -12px rgb(0 0 0 / 0.6), 0 2px 6px -2px rgb(0 0 0 / 0.4);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-fg: var(--brand-fg);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-neg: var(--neg);
+  --color-warn: var(--warn);
+  --color-hover: var(--hover);
+  --color-selected: var(--selected);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius-ctl: 6px;
+  --radius-overlay: 8px;
+  --animate-fade-in: fade-in 180ms ease-out;
+  --animate-sheet-in: sheet-in 180ms ease-out;
+  --animate-rise-in: rise-in 180ms ease-out;
+  --animate-row-flash: row-flash 600ms ease-out;
+  --animate-shimmer: shimmer 1.4s ease-in-out 3;
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sheet-in { from { transform: translateX(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes rise-in { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes row-flash { from { background-color: var(--selected); } to { background-color: transparent; } }
+@keyframes shimmer { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+@layer base {
+  html { background: var(--bg); color: var(--text); -webkit-text-size-adjust: 100%; }
+  body { min-height: 100dvh; font-family: var(--font-sans); font-size: 13px; line-height: 20px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  *, ::before, ::after { border-color: var(--rule); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  ::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+  button, a, [role="button"], input, select, textarea { touch-action: manipulation; }
+  button:not(:disabled), [role="button"], summary, label[for], select { cursor: pointer; }
+  h1, h2, h3 { text-wrap: balance; }
+  input[type="number"]::-webkit-inner-spin-button { opacity: 0.4; }
+}
+
+@layer components {
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .page-title { font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
+  .label { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--muted); }
+  .caption { font-size: 11px; line-height: 16px; color: var(--muted); }
+  .stat { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 28px; line-height: 32px; font-weight: 500; letter-spacing: -0.02em; }
+
+  .tbl { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+  .tbl th { position: sticky; top: 0; z-index: 2; height: 32px; padding: 0 12px; text-align: left; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--muted); background: var(--surface); border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  .tbl td { height: 36px; padding: 0 12px; border-bottom: 1px solid var(--rule); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tbl tbody tr:hover td { background: var(--hover); }
+  .tbl tbody tr[data-focused="true"] td { background: var(--hover); }
+  .tbl tbody tr[data-focused="true"] td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+  .tbl tbody tr[data-selected="true"] td { background: var(--selected); }
+  .tbl .r { text-align: right; }
+  .tbl th.r > button { margin-left: auto; }
+
+  .skeleton { background: var(--rule); border-radius: 4px; animation: var(--animate-shimmer); }
+  .hairline-grid > * + * { border-left: 1px solid var(--rule); }
+}
+
+/* The rail collapses to icons. The state is set on <html> before paint, so there is no flash. */
+html[data-rail="collapsed"] .rail { width: 56px; }
+html[data-rail="collapsed"] .rail .rail-text { display: none; }
+html[data-rail="collapsed"] .rail .rail-pad { padding-left: 0; padding-right: 0; justify-content: center; }
+@media (min-width: 768px) {
+  .with-rail { padding-left: 224px; }
+  html[data-rail="collapsed"] .with-rail { padding-left: 56px; }
+}
+
+html[data-run-banner] #main { padding-top: 36px; }
+
+.recharts-wrapper:focus, .recharts-surface:focus, .recharts-wrapper *:focus { outline: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

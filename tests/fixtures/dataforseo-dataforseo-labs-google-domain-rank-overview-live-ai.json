@@ -1,0 +1,41 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "version": "0.1",
+ "status_code": 20000,
+ "tasks": [
+  {
+   "status_code": 20000,
+   "status_message": "Ok.",
+   "result": [
+    {
+     "items_count": 1,
+     "items": [
+      {
+       "se_type": "google",
+       "location_code": 2840,
+       "language_code": "en",
+       "metrics": {
+        "organic": {
+         "pos_1": 21,
+         "pos_2_3": 64,
+         "pos_4_10": 233,
+         "pos_11_20": 318,
+         "pos_21_30": 290,
+         "pos_31_40": 201,
+         "pos_41_50": 157,
+         "etv": 9460.4,
+         "count": 1284,
+         "estimated_paid_traffic_cost": 18230.1
+        },
+        "paid": {
+         "count": 0
+        }
+       }
+      }
+     ],
+     "target": "kestrelcoffee.co"
+    }
+   ]
+  }
+ ]
+}

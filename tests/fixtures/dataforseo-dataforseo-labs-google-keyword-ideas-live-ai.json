@@ -1,0 +1,183 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "version": "0.1",
+ "status_code": 20000,
+ "tasks": [
+  {
+   "status_code": 20000,
+   "status_message": "Ok.",
+   "result": [
+    {
+     "items_count": 3,
+     "items": [
+      {
+       "keyword": "coffee subscription box",
+       "location_code": 2840,
+       "language_code": "en",
+       "keyword_info": {
+        "search_volume": 5400,
+        "cpc": 3.12,
+        "competition": 0.81,
+        "monthly_searches": [
+         {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 5410
+         },
+         {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 5420
+         },
+         {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 5430
+         },
+         {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 5440
+         },
+         {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 5450
+         },
+         {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 5460
+         },
+         {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 5470
+         },
+         {
+          "year": 2026,
+          "month": 8,
+          "search_volume": 5480
+         },
+         {
+          "year": 2026,
+          "month": 9,
+          "search_volume": 5490
+         },
+         {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 5390
+         },
+         {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 5389
+         },
+         {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 5388
+         }
+        ]
+       },
+       "keyword_properties": {
+        "keyword_difficulty": 44
+       },
+       "search_intent_info": {
+        "main_intent": "commercial"
+       }
+      },
+      {
+       "keyword": "monthly coffee club",
+       "location_code": 2840,
+       "language_code": "en",
+       "keyword_info": {
+        "search_volume": 1900,
+        "cpc": 2.4,
+        "competition": 0.66,
+        "monthly_searches": [
+         {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 1910
+         },
+         {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 1920
+         },
+         {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 1930
+         },
+         {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 1940
+         },
+         {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 1950
+         },
+         {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 1960
+         },
+         {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 1970
+         },
+         {
+          "year": 2026,
+          "month": 8,
+          "search_volume": 1980
+         },
+         {
+          "year": 2026,
+          "month": 9,
+          "search_volume": 1990
+         },
+         {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 1890
+         },
+         {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 1889
+         },
+         {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 1888
+         }
+        ]
+       },
+       "keyword_properties": {
+        "keyword_difficulty": 31
+       },
+       "search_intent_info": {
+        "main_intent": "transactional"
+       }
+      },
+      {
+       "keyword": "coffee of the month",
+       "keyword_info": null
+      }
+     ],
+     "se_type": "google",
+     "seed_keywords": [
+      "coffee subscription"
+     ],
+     "total_count": 3
+    }
+   ]
+  }
+ ]
+}

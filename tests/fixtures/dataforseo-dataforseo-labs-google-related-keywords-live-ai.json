@@ -1,0 +1,186 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "version": "0.1",
+ "status_code": 20000,
+ "tasks": [
+  {
+   "status_code": 20000,
+   "status_message": "Ok.",
+   "result": [
+    {
+     "items_count": 2,
+     "items": [
+      {
+       "se_type": "google",
+       "keyword_data": {
+        "keyword": "espresso beans online",
+        "location_code": 2840,
+        "language_code": "en",
+        "keyword_info": {
+         "search_volume": 2400,
+         "cpc": 1.9,
+         "competition": 0.72,
+         "monthly_searches": [
+          {
+           "year": 2026,
+           "month": 1,
+           "search_volume": 2410
+          },
+          {
+           "year": 2026,
+           "month": 2,
+           "search_volume": 2420
+          },
+          {
+           "year": 2026,
+           "month": 3,
+           "search_volume": 2430
+          },
+          {
+           "year": 2026,
+           "month": 4,
+           "search_volume": 2440
+          },
+          {
+           "year": 2026,
+           "month": 5,
+           "search_volume": 2450
+          },
+          {
+           "year": 2026,
+           "month": 6,
+           "search_volume": 2460
+          },
+          {
+           "year": 2026,
+           "month": 7,
+           "search_volume": 2470
+          },
+          {
+           "year": 2026,
+           "month": 8,
+           "search_volume": 2480
+          },
+          {
+           "year": 2026,
+           "month": 9,
+           "search_volume": 2490
+          },
+          {
+           "year": 2025,
+           "month": 10,
+           "search_volume": 2390
+          },
+          {
+           "year": 2025,
+           "month": 11,
+           "search_volume": 2389
+          },
+          {
+           "year": 2025,
+           "month": 12,
+           "search_volume": 2388
+          }
+         ]
+        },
+        "keyword_properties": {
+         "keyword_difficulty": 38
+        },
+        "search_intent_info": {
+         "main_intent": "transactional"
+        }
+       },
+       "depth": 1,
+       "related_keywords": [
+        "buy espresso beans"
+       ]
+      },
+      {
+       "se_type": "google",
+       "keyword_data": {
+        "keyword": "best espresso beans",
+        "location_code": 2840,
+        "language_code": "en",
+        "keyword_info": {
+         "search_volume": 14800,
+         "cpc": 1.2,
+         "competition": 0.5,
+         "monthly_searches": [
+          {
+           "year": 2026,
+           "month": 1,
+           "search_volume": 14810
+          },
+          {
+           "year": 2026,
+           "month": 2,
+           "search_volume": 14820
+          },
+          {
+           "year": 2026,
+           "month": 3,
+           "search_volume": 14830
+          },
+          {
+           "year": 2026,
+           "month": 4,
+           "search_volume": 14840
+          },
+          {
+           "year": 2026,
+           "month": 5,
+           "search_volume": 14850
+          },
+          {
+           "year": 2026,
+           "month": 6,
+           "search_volume": 14860
+          },
+          {
+           "year": 2026,
+           "month": 7,
+           "search_volume": 14870
+          },
+          {
+           "year": 2026,
+           "month": 8,
+           "search_volume": 14880
+          },
+          {
+           "year": 2026,
+           "month": 9,
+           "search_volume": 14890
+          },
+          {
+           "year": 2025,
+           "month": 10,
+           "search_volume": 14790
+          },
+          {
+           "year": 2025,
+           "month": 11,
+           "search_volume": 14789
+          },
+          {
+           "year": 2025,
+           "month": 12,
+           "search_volume": 14788
+          }
+         ]
+        },
+        "keyword_properties": {
+         "keyword_difficulty": 63
+        },
+        "search_intent_info": {
+         "main_intent": "commercial"
+        }
+       },
+       "depth": 1
+      }
+     ],
+     "seed_keyword": "espresso beans"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,174 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "version": "0.1",
+ "status_code": 20000,
+ "tasks": [
+  {
+   "status_code": 20000,
+   "status_message": "Ok.",
+   "result": [
+    {
+     "items_count": 2,
+     "items": [
+      {
+       "keyword": "single origin coffee subscription",
+       "location_code": 2840,
+       "language_code": "en",
+       "keyword_info": {
+        "search_volume": 2900,
+        "cpc": 4.1,
+        "competition": 0.88,
+        "monthly_searches": [
+         {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 2910
+         },
+         {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 2920
+         },
+         {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 2930
+         },
+         {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 2940
+         },
+         {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 2950
+         },
+         {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 2960
+         },
+         {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 2970
+         },
+         {
+          "year": 2026,
+          "month": 8,
+          "search_volume": 2980
+         },
+         {
+          "year": 2026,
+          "month": 9,
+          "search_volume": 2990
+         },
+         {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 2890
+         },
+         {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 2889
+         },
+         {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 2888
+         }
+        ]
+       },
+       "keyword_properties": {
+        "keyword_difficulty": 41
+       },
+       "search_intent_info": {
+        "main_intent": "commercial"
+       }
+      },
+      {
+       "keyword": "cold brew coffee ratio",
+       "location_code": 2840,
+       "language_code": "en",
+       "keyword_info": {
+        "search_volume": 22200,
+        "cpc": 0.4,
+        "competition": 0.05,
+        "monthly_searches": [
+         {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 22210
+         },
+         {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 22220
+         },
+         {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 22230
+         },
+         {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 22240
+         },
+         {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 22250
+         },
+         {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 22260
+         },
+         {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 22270
+         },
+         {
+          "year": 2026,
+          "month": 8,
+          "search_volume": 22280
+         },
+         {
+          "year": 2026,
+          "month": 9,
+          "search_volume": 22290
+         },
+         {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 22190
+         },
+         {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 22189
+         },
+         {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 22188
+         }
+        ]
+       },
+       "keyword_properties": {
+        "keyword_difficulty": 34
+       },
+       "search_intent_info": {
+        "main_intent": "informational"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

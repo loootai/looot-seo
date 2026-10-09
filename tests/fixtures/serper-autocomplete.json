@@ -1,0 +1,21 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "searchParameters": {
+  "q": "coffee subscription",
+  "gl": "us",
+  "hl": "en",
+  "type": "autocomplete"
+ },
+ "suggestions": [
+  {
+   "value": "coffee subscription gift"
+  },
+  {
+   "value": "coffee subscription box"
+  },
+  {
+   "value": "coffee subscription reddit"
+  }
+ ],
+ "credits": 1
+}

@@ -1,0 +1,70 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "searchParameters": {
+  "q": "single origin coffee subscription",
+  "gl": "us",
+  "hl": "en",
+  "type": "search",
+  "page": 1
+ },
+ "answerBox": {
+  "title": "What is single origin coffee?",
+  "snippet": "Single origin coffee comes from one farm, estate or region, so its flavour reflects that place.",
+  "link": "https://www.kestrelcoffee.co/journal/what-is-single-origin"
+ },
+ "knowledgeGraph": {
+  "title": "Single-origin coffee",
+  "type": "Topic",
+  "description": "Coffee grown within a single known geographic origin.",
+  "descriptionLink": "https://en.wikipedia.org/wiki/Single-origin_coffee"
+ },
+ "organic": [
+  {
+   "title": "Single Origin Coffee Subscription",
+   "link": "https://roastwell.com/shop/single-origin-subscription",
+   "snippet": "Fresh roasted beans from one farm at a time, shipped every two weeks.",
+   "position": 1
+  },
+  {
+   "title": "Single origin subscription | Kestrel Coffee",
+   "link": "https://www.kestrelcoffee.co/subscriptions/single-origin",
+   "snippet": "A new farm every month. Roasted on Mondays, shipped on Tuesdays.",
+   "position": 2
+  },
+  {
+   "title": "Best single origin subscriptions?",
+   "link": "https://www.reddit.com/r/Coffee/comments/abc123/best_single_origin/",
+   "snippet": "Looking for a subscription that rotates farms.",
+   "position": 3,
+   "date": "3 Aug 2026"
+  },
+  {
+   "title": "Our journal: choosing a subscription",
+   "link": "https://kestrelcoffee.co/journal/choosing-a-subscription",
+   "snippet": "How often to order and how much.",
+   "position": 4
+  }
+ ],
+ "peopleAlsoAsk": [
+  {
+   "question": "Is single origin coffee better?",
+   "snippet": "It is not better by default. It is more distinctive.",
+   "title": "Single origin vs blends",
+   "link": "https://www.kestrelcoffee.co/journal/single-origin-vs-blends"
+  },
+  {
+   "question": "How much is a coffee subscription?",
+   "snippet": "Most cost between 14 and 24 dollars per bag.",
+   "link": "https://northbeancoffee.com/learn/subscription-cost"
+  }
+ ],
+ "relatedSearches": [
+  {
+   "query": "single origin coffee subscription gift"
+  },
+  {
+   "query": "best coffee subscription"
+  }
+ ],
+ "credits": 1
+}

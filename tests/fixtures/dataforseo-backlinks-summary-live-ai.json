@@ -1,0 +1,25 @@
+{
+ "_note": "Shape from provider docs, not from a live run",
+ "version": "0.1",
+ "status_code": 20000,
+ "tasks": [
+  {
+   "status_code": 20000,
+   "result": [
+    {
+     "target": "kestrelcoffee.co",
+     "first_seen": "2019-03-02 00:00:00 +00:00",
+     "rank": 380,
+     "backlinks": 3184,
+     "backlinks_spam_score": 3,
+     "crawled_pages": 912,
+     "broken_backlinks": 27,
+     "broken_pages": 4,
+     "referring_domains": 412,
+     "referring_main_domains": 398,
+     "referring_ips": 301
+    }
+   ]
+  }
+ ]
+}
