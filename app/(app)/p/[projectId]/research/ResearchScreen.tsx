@@ -328,11 +328,11 @@ export function ResearchScreen({ project, tracked, runs, active, metrics, prices
                   <span className="num text-ink">{sorted.length}</span> of {rows.length} keywords
                   {mode === "seeds" && active ? <> · search from {formatDay(active.at, true)}, {formatRelative(active.at, now)}</> : null}
                 </p>
-                <div className="ml-auto flex items-center gap-2">
+                <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2">
                   <Button size="sm" className="xl:hidden" onClick={() => setFiltersOpen((o) => !o)} aria-expanded={filtersOpen}>
                     <SlidersHorizontal strokeWidth={1.5} /> {filtering ? "Filters on" : "Filters"}
                   </Button>
-                  {missing.length > 0 ? <PaidButton size="sm" label={`Get volume and difficulty for ${missing.length} ${missing.length === 1 ? "keyword" : "keywords"}`} priceMicros={metricsPrice} request={{ projectId: project.id, action: "keyword_metrics", scope: { phrases: missing }, onDone: () => router.refresh() }} /> : <span className="caption flex items-center gap-1"><Check className="size-3 text-accent-text" strokeWidth={2} aria-hidden /> Every keyword has numbers</span>}
+                  {missing.length > 0 ? <PaidButton size="sm" className="max-sm:h-auto max-sm:min-h-8 max-sm:max-w-full max-sm:shrink max-sm:whitespace-normal max-sm:py-1 max-sm:text-left" label={`Get volume and difficulty for ${missing.length} ${missing.length === 1 ? "keyword" : "keywords"}`} priceMicros={metricsPrice} request={{ projectId: project.id, action: "keyword_metrics", scope: { phrases: missing }, onDone: () => router.refresh() }} /> : <span className="caption flex items-center gap-1"><Check className="size-3 text-accent-text" strokeWidth={2} aria-hidden /> Every keyword has numbers</span>}
                 </div>
               </div>
               {filtersOpen ? <div className="grid gap-3 border-b border-rule px-4 py-3 sm:grid-cols-2 md:px-6 xl:hidden">{filterFields}</div> : null}

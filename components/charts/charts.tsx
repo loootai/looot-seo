@@ -38,7 +38,8 @@ type TipProps = { active?: boolean; payload?: readonly { payload?: unknown }[] }
 /** The same data as a chart, as a table for screen readers. */
 function DataTable({ caption, head, rows }: { caption: string; head: string[]; rows: (string | number)[][] }) {
   return (
-    <table className="sr-only">
+    <div className="sr-only">
+    <table>
       <caption>{caption}</caption>
       <thead>
         <tr>
@@ -59,6 +60,7 @@ function DataTable({ caption, head, rows }: { caption: string; head: string[]; r
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 

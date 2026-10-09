@@ -41,12 +41,12 @@ export default async function SerpIndexPage({ params, searchParams }: { params: 
           </EmptyState>
         ) : (
           <div className="overflow-x-auto">
-            <table className="tbl" style={{ minWidth: 560 }}>
+            <table className="tbl sm:min-w-[560px]">
               <colgroup>
                 <col />
                 <col style={{ width: 110 }} />
                 <col className="max-sm:hidden" style={{ width: 130 }} />
-                <col style={{ width: 150 }} />
+                <col className="max-sm:hidden" style={{ width: 150 }} />
                 <col className="max-sm:hidden" style={{ width: 100 }} />
               </colgroup>
               <thead>
@@ -54,7 +54,7 @@ export default async function SerpIndexPage({ params, searchParams }: { params: 
                   <th scope="col">Keyword</th>
                   <th scope="col" className="r">Position</th>
                   <th scope="col" className="max-sm:hidden">Features</th>
-                  <th scope="col" className="r">Latest snapshot</th>
+                  <th scope="col" className="r max-sm:hidden">Latest snapshot</th>
                   <th scope="col" className="r max-sm:hidden">Snapshots</th>
                 </tr>
               </thead>
@@ -62,7 +62,7 @@ export default async function SerpIndexPage({ params, searchParams }: { params: 
                 {rows.map((r) => (
                   <tr key={r.id}>
                     <td>
-                      <Link href={`${base}/serp/${r.id}`} className="flex items-center gap-1.5 font-medium hover:underline">
+                      <Link href={`${base}/serp/${r.id}`} className="flex min-w-0 items-center gap-1.5 font-medium hover:underline">
                         <span className="truncate">{r.phrase}</span>
                         {r.aio ? <Tag tone="accent">AIO</Tag> : null}
                       </Link>
@@ -71,7 +71,7 @@ export default async function SerpIndexPage({ params, searchParams }: { params: 
                       <Position value={r.position} depth={r.depth} checked={r.checked} />
                     </td>
                     <td className="max-sm:hidden">{r.checked ? <FeatureGlyphs f={r.features} /> : <span className="text-muted">–</span>}</td>
-                    <td className="r text-muted" title={r.lastChecked ?? undefined}>
+                    <td className="r text-muted max-sm:hidden" title={r.lastChecked ?? undefined}>
                       {r.lastChecked ? `${formatDay(r.lastChecked)} · ${formatRelative(r.lastChecked, b.now)}` : "never checked"}
                     </td>
                     <td className="num r text-muted max-sm:hidden">{r.history.filter((h) => h.snapshotId).length}</td>

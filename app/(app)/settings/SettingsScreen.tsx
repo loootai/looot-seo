@@ -161,7 +161,7 @@ export function SettingsScreen({ email, defaults, demo, hasToken, tokenEnv, fail
                 </Select>
               </Field>
             </div>
-            <fieldset>
+            <fieldset className="min-w-0">
               <legend className="label text-ink">SERP provider for rank checks</legend>
               <div className="mt-1.5 divide-y divide-rule rounded-ctl border border-rule-strong">
                 {Object.entries(serpPrices).map(([op, micros]) => (
