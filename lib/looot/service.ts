@@ -157,7 +157,9 @@ export async function runAndStore(store: DataStore, run: Run, items: CallItem[],
     });
     // The table refuses a cost above the cap. If a provider billed more than its quoted price, the excess is kept in over_cap_micros.
     const over = Math.max(0, result.spentMicros - run.max_cost_micros);
-    await store.updateRun(run.id, { status: result.status, items_done: result.outcomes.length, actual_cost_micros: Math.min(result.spentMicros, run.max_cost_micros), over_cap_micros: over, finished_at: new Date().toISOString() });
+    // items_done counts calls that were sent. Calls held back by the cap are not "done".
+    const sent = result.outcomes.filter((o) => o.status !== "skipped_budget").length;
+    await store.updateRun(run.id, { status: result.status, items_done: sent, actual_cost_micros: Math.min(result.spentMicros, run.max_cost_micros), over_cap_micros: over, finished_at: new Date().toISOString() });
   } catch (e) {
     console.error("looot-seo: run failed", run.id, e);
     await store.updateRun(run.id, { status: "failed", finished_at: new Date().toISOString() }).catch(() => undefined);

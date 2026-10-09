@@ -200,4 +200,33 @@ describe("demo mode", () => {
     expect(view?.counts.unreadable).toBe(0);
     expect(fetchSpy).not.toHaveBeenCalled();
   }, 20_000);
+  it("counts only the calls that were sent when the cap holds the rest back", async () => {
+    const { store, quote } = await quoted(42, 10);
+    const s = scheduler();
+    const started = await startRun(store, { quoteId: quote.quoteId, maxCostMicros: 10_000, idempotencyKey: "capped-run-count" }, { client: mockRunner(), simulated: false, schedule: s.schedule });
+    await s.done();
+    const view = await readRun(store, runOf(started).runId);
+    expect(view?.run).toMatchObject({ status: "partial", items_total: 42, items_done: 10, actual_cost_micros: 10_000 });
+    expect(view?.counts).toMatchObject({ completed: 10, skipped: 32 });
+  });
+
+  it("a simulated backlink refresh keeps the project's own referring domains", async () => {
+    const store = buildDemoStore();
+    const project = (await store.getProject("kestrel"))!;
+    const before = (await store.listBacklinkSnapshots("kestrel")).find((b) => b.domain === project.domain)!;
+    const q = quoteOf(await createQuote(store, { projectId: "kestrel", action: "backlinks" }, { price: fallbackPrices, simulated: true }));
+    expect(q.total).toBe(72_000);
+    const s = scheduler();
+    await startRun(store, { quoteId: q.quoteId, maxCostMicros: q.total, idempotencyKey: "demo-backlinks-run" }, { client: fakeRunner(project, 3), simulated: true, schedule: s.schedule });
+    await s.done();
+    const after = (await store.listBacklinkSnapshots("kestrel")).find((b) => b.domain === project.domain)!;
+    expect(after.id).not.toBe(before.id);
+    expect(after.top_domains?.length).toBe(100);
+    expect(after.top_domains?.map((d) => d.domain).slice(0, 5)).toEqual(before.top_domains?.map((d) => d.domain).slice(0, 5));
+    expect(after.top_domains?.some((d) => d.domain.endsWith(".uk"))).toBe(false);
+    expect(after.referring_domains).toBe(418);
+    expect(after.domain_rank).toBe(before.domain_rank);
+    expect(after.top_domains?.[0]).toMatchObject({ domain: before.top_domains?.[0]?.domain, rank: before.top_domains?.[0]?.rank, backlinks: before.top_domains?.[0]?.backlinks });
+    expect(after.new_lost).toHaveLength(12);
+  });
 });

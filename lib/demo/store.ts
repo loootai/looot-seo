@@ -41,7 +41,8 @@ function loomworkResults(): ResearchResult[] {
   return out;
 }
 
-function referringDomains(): ReferringDomain[] {
+/** The 100 seeded referring domains of the coffee demo project, highest rank first. */
+export function referringDomains(): ReferringDomain[] {
   const r = rngFor("referring");
   const names = [...REFERRING_POOL];
   const w = REFERRING_WORDS;

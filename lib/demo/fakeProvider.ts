@@ -1,6 +1,6 @@
 import { SEED_PROJECTS, type SeedKeyword, type SeedProject } from "@/lib/demo/seed";
 import { generateSerp, numbersFor, rngFor } from "@/lib/demo/generator";
-import { ideasFor, latestSeededSerp } from "@/lib/demo/store";
+import { demoStore, ideasFor, latestSeededSerp, referringDomains } from "@/lib/demo/store";
 import { OP, fallbackPrice } from "@/lib/looot/catalog";
 import type { LoootRun, LoootRunner } from "@/lib/looot/client";
 import type { Project } from "@/lib/types";
@@ -15,6 +15,14 @@ function genericSerp(project: Project, phrase: string) {
   const kw: SeedKeyword = { phrase, volume: 0, difficulty: 0, track: [0, 0, 0] };
   const position = r() < 0.7 ? 3 + Math.floor(r() * (project.depth - 3)) : null;
   return generateSerp(p, kw, 0, "2026-10-08", position);
+}
+
+/** The newest stored backlink refresh for a domain in the demo workspace, if there is one. */
+function storedBacklinks(project: Project, domain: string) {
+  return demoStore()
+    .backlinks.filter((b) => b.project_id === project.id && b.domain === domain)
+    .sort((a, b) => a.fetched_at.localeCompare(b.fetched_at))
+    .at(-1);
 }
 
 /** The raw body a provider would send for one call, built from seeded data. Shapes follow the fixtures in tests/fixtures. */
@@ -67,16 +75,26 @@ export function fakeResult(operationId: string, input: Record<string, unknown>, 
       return dfs([{ metrics: { organic: { count, etv: Math.round(count * (4 + r() * 6)), pos_1: Math.round(count * 0.02), pos_2_3: Math.round(count * 0.05), pos_4_10: Math.round(count * 0.18), pos_11_20: Math.round(count * 0.25), pos_21_30: Math.round(count * 0.22), pos_31_40: Math.round(count * 0.16), pos_41_50: Math.round(count * 0.12) } } }]);
     }
     case OP.blSummary: {
+      const prev = storedBacklinks(project, String(input.target));
+      if (prev) return { tasks: [{ result: [{ target: input.target, rank: prev.domain_rank ?? 0, backlinks: (prev.backlinks ?? 0) + 41, referring_domains: (prev.referring_domains ?? 0) + 6, backlinks_spam_score: prev.spam_score ?? 0, broken_backlinks: Math.max(0, (prev.broken_backlinks ?? 0) - 2) }] }] };
       const r = rngFor("bl-summary", String(input.target));
       const rd = 120 + Math.floor(r() * 900);
       return { tasks: [{ result: [{ target: input.target, rank: 180 + Math.floor(r() * 380), backlinks: rd * (5 + Math.floor(r() * 6)), referring_domains: rd, backlinks_spam_score: Math.floor(r() * 9), broken_backlinks: Math.floor(r() * 60) }] }] };
     }
     case OP.blDomains: {
-      const r = rngFor("bl-domains", String(input.target));
+      const target = String(input.target);
+      const r = rngFor("bl-domains", target);
+      const row = (d: { domain: string; rank: number | null; backlinks: number | null; first_seen: string | null; dofollow_share: number | null }) => ({ domain: d.domain, rank: d.rank ?? 0, backlinks: d.backlinks ?? 1, first_seen: `${d.first_seen ?? "2025-01-14"} 00:00:00 +00:00`, referring_links_attributes: { nofollow: Math.round((d.backlinks ?? 1) * (1 - (d.dofollow_share ?? 1))) } });
+      // A refresh of a domain that already has a stored list returns the same sites, so the demo keeps its story.
+      const prev = storedBacklinks(project, target)?.top_domains;
+      if (prev?.length) return dfs(prev.map(row));
+      if (!target.endsWith(".uk")) return dfs(referringDomains().slice(0, 60).map(row));
       const names = ["nhs.uk", "leedsphysiocollective.co.uk", "yorkshiresportsclinic.co.uk", "runnersrepair.co.uk", "physiofinder.org.uk", "jointcarejournal.com", "rehabnotes.co.uk", "movewellnorth.co.uk", "headingleylife.co.uk", "leedsrunningclub.org.uk", "yorkshirebusinessdirectory.co.uk", "otleyroadclinic.co.uk", "northernhealthnotes.com", "parkrunstories.co.uk", "localclinicguide.co.uk", "westyorkshirewellbeing.org"];
-      return dfs(names.map((domain, i) => ({ domain, rank: 720 - i * 34 - Math.floor(r() * 20), backlinks: 1 + Math.floor(Math.pow(r(), 2) * 40), first_seen: `2025-${String(1 + Math.floor(r() * 12)).padStart(2, "0")}-14 00:00:00 +00:00`, referring_links_attributes: { nofollow: 0 } })));
+      return dfs(names.map((domain, i) => row({ domain, rank: Math.round((720 - i * 34 - Math.floor(r() * 20)) / 10), backlinks: 1 + Math.floor(Math.pow(r(), 2) * 40), first_seen: `2025-${String(1 + Math.floor(r() * 12)).padStart(2, "0")}-14`, dofollow_share: Math.round((0.4 + r() * 0.6) * 100) / 100 })));
     }
     case OP.blNewLost: {
+      const prev = storedBacklinks(project, String(input.target))?.new_lost;
+      if (prev?.length) return dfs(prev.map((m) => ({ date: `${m.month}-01 00:00:00 +00:00`, new_backlinks: m.new, lost_backlinks: m.lost })));
       const r = rngFor("bl-newlost", String(input.target));
       return dfs(Array.from({ length: 12 }, (_, i) => ({ date: `${new Date(Date.UTC(2025, 9 + i, 1)).toISOString().slice(0, 10)} 00:00:00 +00:00`, new_backlinks: 4 + Math.floor(r() * 22), lost_backlinks: 2 + Math.floor(r() * 12) })));
     }
