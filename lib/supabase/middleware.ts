@@ -9,7 +9,9 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   const path = request.nextUrl.pathname;
   const open = path.startsWith("/login") || path.startsWith("/auth/");
   if (!url || !key) {
-    if (open || path.startsWith("/api/")) return response;
+    if (open) return response;
+    // With no Supabase settings nobody can be signed in, so no API route answers.
+    if (path.startsWith("/api/")) return NextResponse.json({ error: { code: "not_configured", message: "Supabase is not set up on this server." } }, { status: 503 });
     const to = request.nextUrl.clone();
     to.pathname = "/login";
     to.search = "?setup=1";
