@@ -267,7 +267,8 @@ export function RankingsScreen({ project, rows, days, competitors, comp, now, st
                                 {r.phrase}
                               </button>
                               {r.aio ? <Tag tone="accent" title="AI Overview is checked for this keyword">AIO</Tag> : null}
-                              {open ? null : <span className="flex max-h-5 min-w-0 flex-1 flex-wrap gap-x-1.5 gap-y-2 overflow-hidden" title={r.tags.join(", ")}>{r.tags.slice(0, 2).map((t) => <Tag key={t}>{t}</Tag>)}</span>}
+                              {/* The empty first item lets a chip that does not fit wrap out of sight whole, so no chip is cut mid-word. The title has every tag. */}
+                              {open ? null : <span className="flex max-h-5 min-w-0 flex-1 flex-wrap gap-y-2 overflow-hidden before:h-[18px] before:w-0 before:content-['']" title={r.tags.join(", ")}>{r.tags.slice(0, 2).map((t) => <Tag key={t} className="mr-1.5">{t}</Tag>)}</span>}
                             </span>
                           </td>
                           <td className="r">
