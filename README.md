@@ -14,15 +14,106 @@ Want cron and a terminal instead of a web app? Use [looot-seo-monitor](https://g
 
 The one rule the app is built around: quote, confirm, run. Every paid button opens a quote with the call count and the unit price. You confirm a cap. The server stops the run when the next call would pass it.
 
-## Run the demo in one command
+## What you need
+
+- Node 20.9 or newer (Next.js 16 requires it; `package.json` has no `engines` field and there is no `.nvmrc`). The tests, lint, typecheck, build and demo were run on Node 24.
+- For the demo, nothing else. No account, no token.
+- For the real app, a [looot](https://looot.ai) account and an agent token, plus a free Supabase project for sign-in and the database.
+
+Create the looot account at https://looot.ai/auth/sign-up. Then get a token one of two ways.
+
+- Run `npm i -g looot`, then `looot login`. It opens a browser to approve.
+- Or in the looot web app go to Settings, "Agent tokens", and create one. See https://docs.looot.ai/get-started/sign-in.
+
+With no browser (CI, a server), create the token in Settings > Agent tokens and run `export LOOOT_TOKEN=...`. The token needs the scopes `runs.execute`, `catalog.read`, `runs.read` and `usage.read`. A paid run needs a funded balance. The minimum top-up is $5, and signing up adds no credit. See https://docs.looot.ai/money.
+
+## Try it in one minute
 
 ```bash
-git clone https://github.com/loootai/looot-seo && cd looot-seo && npm ci && npm run demo
+git clone https://github.com/loootai/looot-seo && cd looot-seo && npm install --ignore-scripts && npm run demo
 ```
 
 Open http://localhost:3000. Demo mode needs no Supabase project and no token. It runs on seeded data for three made-up businesses, labelled "Demo data" on every screen. "Simulate run" finishes in about 3 seconds, charges nothing and sends no request to looot. Edits live in memory and reset when the server restarts.
 
 Add `?state=empty`, `?state=loading` or `?state=error` to a list screen in demo mode to see that state.
+
+If port 3000 is busy, run `NEXT_PUBLIC_DEMO=1 node_modules/.bin/next dev -p 4101` instead. Next.js may write an `AGENTS.md` and a `CLAUDE.md` into the folder on first start. They are not part of this repo.
+
+## Run it with your own data
+
+This repo is a web app. It has no command-line interface and no `--dry-run` flag. The quote dialog is the dry run. Every paid button opens a quote with the call count and the unit price, and nothing is sent to looot until you confirm a cap.
+
+You need the steps in [Run the web app with sign-in](#run-the-web-app-with-sign-in) first, because the real app keeps projects in Supabase. Then:
+
+```bash
+cp .env.example .env.local
+npm run dev
+```
+
+`npm run dev` serves http://localhost:3000. The code reads these variables.
+
+| Variable | Needed | What it does | Where to get it |
+|---|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | yes | Supabase project URL for sign-in and every query. Reaches the browser | Supabase, Project Settings, API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Supabase anon key. The app uses no service-role key. Reaches the browser | Supabase, Project Settings, API |
+| `LOOOT_TOKEN` | for paid runs | looot agent token. Server only (`lib/looot/server.ts` imports `server-only`). Without it, a run answers `missing_token` | Settings > Agent tokens in looot |
+| `LOOOT_API_URL` | no | Base URL of the looot API. Defaults to `https://api.looot.ai` | Leave unset |
+| `NEXT_PUBLIC_DEMO` | no | `1` runs on seeded data with no Supabase and no token | Set by `npm run demo` |
+
+Then, in the app:
+
+1. Press New project. Fill in the domain, name, country, language and first keywords. The repo ships `examples/keywords.example.txt` with four keywords to paste. Adding keywords is free.
+2. Open Rankings and press the check button. The quote dialog lists the lines, the call count, the unit price and the total. Lower the cap if you want, then confirm.
+3. Results are stored in your Supabase project. Every run, with each call's operation id, status, cost and looot run id, is under Costs.
+
+In Settings, the looot connection card has a test button. It calls Balance only, which is free.
+
+## Spending
+
+- Quote, confirm, run. Every paid button opens a quote first. The cap can be lowered and never raised above the quote total. The server answers 422 `cap_above_quote` if it is.
+- The server stops a run when the next call would pass the cap. A $0.010 cap over 42 calls at $0.001 makes exactly 10 calls and skips 32.
+- A quote older than 10 minutes, or one that already started a run, is refused with 409. Two requests with the same idempotency key create one run.
+- Typical list prices. A rank check of 42 keywords to the top 30 is 42 x 3 pages x $0.001 = $0.126, or $0.172 with AI Overview on for 10 of them. Keyword ideas are $0.012 a call, backlink totals $0.024. The full table is in [What each feature costs](#what-each-feature-costs).
+- A failed call costs $0, and a failed item retried sends the same idempotency key, so it is not charged twice.
+
+## Run the web app with sign-in
+
+The app uses Supabase Auth (email and password, or a magic link) and a Postgres database. These steps use a hosted Supabase project, not a local Docker stack.
+
+1. Create a project in the Supabase dashboard. Copy the project URL and the anon key from Project Settings, API into `.env.local`. Under Authentication, keep the email provider on.
+2. Apply the schema. There is one migration, `supabase/migrations/0001_init.sql`. It creates 14 tables, each with row level security enabled and forced, and policies on `owner_id = auth.uid()`. Either link and push from a clone of this repo:
+
+   ```bash
+   supabase link --project-ref <your-project-ref>
+   supabase db push
+   ```
+
+   Or open the SQL editor in the Supabase dashboard, paste the whole file and run it.
+3. Under Authentication, URL Configuration, add the redirect URLs. The app sends the confirmation and magic links to `<origin>/auth/callback` (`app/auth/callback/route.ts`).
+   - `http://localhost:3000/auth/callback` for `npm run dev`
+   - `https://<your-app-domain>/auth/callback` for the deployed app
+   Set the Site URL to your deployed app URL.
+4. Put `LOOOT_TOKEN` in `.env.local`, then `npm run dev` and open http://localhost:3000. Create an account on the sign-in page with email and password (at least 8 characters), or request a magic link. Depending on your Supabase email settings you may have to confirm the address first.
+
+For a production build on your own machine, use `npm run build && npm start`.
+
+## Deploy
+
+1. Push the repo to your own GitHub account, or use the Deploy with Vercel button below.
+2. In Vercel, Add New, Project, import the repo. The framework preset is Next.js and the defaults work. The repo has no `vercel.json`.
+3. Add these environment variables before the first deploy.
+
+   | Name | Value |
+   |---|---|
+   | `NEXT_PUBLIC_SUPABASE_URL` | your Supabase project URL |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | your Supabase anon key |
+   | `LOOOT_TOKEN` | your looot agent token |
+
+4. Deploy, then add `https://<your-vercel-domain>/auth/callback` to the Supabase redirect URLs and set the Site URL to the same domain.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Floootai%2Flooot-seo&env=NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,LOOOT_TOKEN&envDescription=Supabase%20URL%20and%20anon%20key%2C%20plus%20a%20looot%20token&envLink=https%3A%2F%2Fgithub.com%2Floootai%2Flooot-seo%23run-the-web-app-with-sign-in)
+
+A run sends its calls after the response, inside one request that may last up to 300 seconds (`maxDuration` in `app/api/runs/route.ts`). Check that your Vercel plan allows that, or keep runs small. The repo has no scheduled workflow. Refresh is manual.
 
 ## Screens
 
@@ -47,37 +138,6 @@ Phone width:
 </p>
 
 More in [docs/screenshots](docs/screenshots): empty, loading and error states, and every screen in dark.
-
-## Run it for real
-
-You need a Supabase project and a looot token.
-
-1. Create a Supabase project. In Authentication, keep email enabled. Add your site URL plus `/auth/callback` to the redirect URLs.
-2. Apply the schema. With the Supabase CLI:
-
-   ```bash
-   supabase link --project-ref <your-project-ref>
-   supabase db push
-   ```
-
-   Or paste `supabase/migrations/0001_init.sql` into the SQL editor. It creates 14 tables, each with row level security enabled and forced, and policies on `owner_id = auth.uid()`.
-3. Get a token at [looot.ai](https://looot.ai) and top up. The minimum is $5.
-4. Copy `.env.example` to `.env.local` and fill it in:
-
-   | Variable | Where it comes from | Reaches the browser |
-   |---|---|---|
-   | `NEXT_PUBLIC_SUPABASE_URL` | Supabase, Project settings, API | yes |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase, Project settings, API | yes |
-   | `LOOOT_TOKEN` | looot.ai | no |
-   | `NEXT_PUBLIC_DEMO` | leave empty, or `1` for demo mode | yes |
-
-5. `npm ci && npm run build && npm start`
-
-The app uses no service-role key. Every read and write goes through the signed-in user's session, so row level security is the only gate.
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Floootai%2Flooot-seo&env=NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,LOOOT_TOKEN&envDescription=Supabase%20URL%20and%20anon%20key%2C%20plus%20a%20looot%20token&envLink=https%3A%2F%2Fgithub.com%2Floootai%2Flooot-seo%23run-it-for-real)
-
-A run sends its calls after the response, inside one request that may last up to 300 seconds (`maxDuration` in `app/api/runs/route.ts`). Check that your Vercel plan allows that, or keep runs small.
 
 ## Where the token lives
 
@@ -122,7 +182,27 @@ Depth costs pages. The app assumes Google returns 10 organic results per call, s
 - Every call to looot carries the key `<runId>:<itemKey>`. A retry of a failed item sends the same key, so it cannot be charged twice.
 - The database refuses a run row whose actual cost is above its cap, or whose cap is above its quote.
 
-## What has been tested, and what has not
+## Troubleshooting
+
+These are the exact messages in the code.
+
+| Message | What it means and what to do |
+|---|---|
+| `Supabase is not set up yet` (sign-in page), or `Supabase is not set up on this server.` (HTTP 503 from the API) | `NEXT_PUBLIC_SUPABASE_URL` or `NEXT_PUBLIC_SUPABASE_ANON_KEY` is empty. Set both in `.env.local` and restart, or run the demo. |
+| `Supabase did not answer` | The sign-in service could not be reached. Check your connection and that the Supabase project is not paused. |
+| `That link did not work` | The link was used or expired. Request a new one. Check that `<origin>/auth/callback` is in the Supabase redirect URLs. |
+| `That email and password do not match.` | Wrong password for that account. |
+| `Sign in first.` (HTTP 401, code `signed_out`) | Your session is gone. Sign in again. |
+| `LOOOT_TOKEN is not set on the server, so nothing can run.` (HTTP 503, code `missing_token`) | Create a token (see [What you need](#what-you-need)), set it in `.env.local` or the Vercel environment variables and restart. Settings shows the token as Missing. |
+| `looot did not accept the token or did not answer. Check the token and try again.` (Settings test) | The token is wrong, revoked or missing a scope, or looot was unreachable. Create a new one with `runs.execute`, `catalog.read`, `runs.read` and `usage.read`. |
+| `looot returned HTTP 401` or `HTTP 402`, or the message looot sends back | 401 is a bad token. 402 or a blocked call means the balance is too low. Top up at https://looot.ai (minimum $5). |
+| `The call ended as blocked.` (or `stopped`, `failed`) | The call finished without a result and cost $0. The run detail in Costs shows the looot run id. |
+| `The provider returned a shape this version cannot read. The call was charged; the raw body is on the run in Costs.` | The call succeeded but the parser does not know the shape. The raw body is stored on the run. File an issue with it. |
+| `The run could not be started. Nothing was charged.` / `The quote could not be built. Nothing was charged.` | A server error before any call. Retry, and check the server log for `looot-seo:`. |
+
+How to file an issue. Open one at https://github.com/loootai/looot-seo/issues with the run id (Costs, then the run), the action you took, and the raw response body with secrets removed.
+
+## Status
 
 Tested, with looot mocked:
 
@@ -130,7 +210,7 @@ Tested, with looot mocked:
 - `npm run test:rls`: applies the migration to a throwaway local Postgres and checks, with two users, that neither can read, change or attach rows to the other's data, and that `anon` sees nothing. It needs `initdb`, `pg_ctl` and `psql`, and skips with a note when they are missing.
 - `tsc --noEmit`, `eslint .`, `next build`, and the bundle grep above.
 
-Not tested:
+Not tested. If a parser fails on a real response, open an issue with the raw response body (secrets removed).
 
 - No paid looot run was made during the build. All 14 operations show `unverified` in the public catalog. The adapter fixtures in `tests/fixtures/` are written from each provider's public documentation, not from a live run. If a provider returns a shape an adapter cannot read, the app stores the raw body, shows "The provider returned a shape this version cannot read" and still records the cost.
 - The Supabase data layer is type checked and its schema is covered by the RLS test, but the app has not been run end to end against a hosted Supabase project.
