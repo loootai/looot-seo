@@ -297,7 +297,7 @@ function RunBanner({ run, onCancel, onDismiss, onRetry }: { run: ActiveRun; onCa
   const failed = v?.counts.failed ?? 0;
   const failedCost = failed && r ? Math.max(0, r.quoted_micros - r.actual_cost_micros) : 0;
   return (
-    <div role="status" aria-live="polite" className="with-rail fixed inset-x-0 top-12 z-30">
+    <div role="status" aria-live="polite" className="with-rail fixed inset-x-0 top-14 z-30 lg:top-12">
       <div className="relative flex min-h-9 flex-wrap items-center gap-x-3 gap-y-1 border-b border-rule bg-raised px-4 py-1.5 text-[12px] shadow-[0_6px_16px_-12px_rgb(11_46_34/0.4)] md:px-6">
         {!run.done ? (
           <>

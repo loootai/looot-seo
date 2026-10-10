@@ -43,6 +43,26 @@ export function DialogContent({ className, children, title, description, hideClo
   );
 }
 
+export const Drawer = D.Root;
+export const DrawerTrigger = D.Trigger;
+
+/** Navigation drawer that slides in from the left, below 1024px. Radix traps focus, closes on Escape and returns focus to the button that opened it. */
+export function DrawerContent({ className, children, title, description, ...props }: React.ComponentProps<typeof D.Content> & { title: string; description?: string }) {
+  return (
+    <D.Portal>
+      <D.Overlay className={cn(overlay, "lg:hidden")} />
+      <D.Content className={cn("fixed inset-y-0 left-0 z-50 flex w-[min(20rem,85vw)] flex-col bg-[var(--sidebar)] text-[var(--sidebar-fg)] shadow-[var(--shadow)] data-[state=open]:animate-drawer-in lg:hidden", className)} {...props}>
+        <D.Title className="sr-only">{title}</D.Title>
+        <D.Description className="sr-only">{description ?? title}</D.Description>
+        <D.Close className="absolute right-2 top-2 inline-flex size-10 items-center justify-center rounded-ctl text-[var(--sidebar-muted)] hover:bg-white/5 hover:text-[var(--sidebar-fg)] focus-visible:outline-[#7fe0b8]" aria-label="Close menu">
+          <X className="size-5" strokeWidth={1.5} />
+        </D.Close>
+        {children}
+      </D.Content>
+    </D.Portal>
+  );
+}
+
 export const Sheet = D.Root;
 export const SheetTrigger = D.Trigger;
 export const SheetClose = D.Close;

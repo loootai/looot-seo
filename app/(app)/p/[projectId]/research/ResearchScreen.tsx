@@ -413,7 +413,7 @@ export function ResearchScreen({ project, tracked, runs, active, metrics, prices
       </div>
 
       {picked.length > 0 ? (
-        <div className="fixed inset-x-0 bottom-14 z-30 flex items-center gap-3 border-t border-rule bg-raised px-4 py-2.5 shadow-[var(--shadow)] md:bottom-0 md:left-56 xl:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t border-rule bg-raised px-4 py-2.5 shadow-[var(--shadow)] lg:left-60 xl:hidden">
           <p className="min-w-0 flex-1 text-[12px]">
             <span className="num font-medium">{picked.length}</span> selected · <span className="num">{formatInt(pickedVolume)}</span> volume
             <span className="block text-muted">Adds <span className="num">{formatMoney(toTrack.length * prices.perKeyword)}</span> to each check</span>

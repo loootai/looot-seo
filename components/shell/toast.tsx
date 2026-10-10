@@ -32,7 +32,7 @@ export function ToastProvider({ children, demo }: { children: React.ReactNode; d
   return (
     <Ctx.Provider value={value}>
       {children}
-      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-16 z-[70] flex flex-col items-center gap-2 px-4 md:bottom-5 md:items-start md:pl-[calc(224px+24px)]">
+      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-5 z-[70] flex flex-col items-center gap-2 px-4 lg:items-start lg:pl-[calc(240px+24px)]">
         {toasts.map((t) => (
           <div key={t.id} className={cn("pointer-events-auto flex max-w-md items-start gap-3 rounded-overlay border bg-raised px-3 py-2 text-[13px] shadow-[var(--shadow)] animate-rise-in", t.tone === "error" ? "border-neg/50" : "border-rule")}>
             <span className={t.tone === "error" ? "text-neg" : ""}>{t.text}</span>
