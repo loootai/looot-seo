@@ -12,6 +12,12 @@ export function hasLoootToken(): boolean {
   return Boolean(process.env.LOOOT_TOKEN);
 }
 
+/** Server ceiling for one run in micros, from LOOOT_SEO_MAX_RUN_USD. Undefined when unset or not a positive number. */
+export function maxRunMicros(): number | undefined {
+  const usd = Number(process.env.LOOOT_SEO_MAX_RUN_USD);
+  return Number.isFinite(usd) && usd > 0 ? toMicros(usd) : undefined;
+}
+
 /** Builds the looot client from LOOOT_TOKEN. Returns null when the token is missing. */
 export function loootFromEnv(): LoootClient | null {
   const token = process.env.LOOOT_TOKEN;

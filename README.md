@@ -58,6 +58,9 @@ npm run dev
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Supabase anon key. The app uses no service-role key. Reaches the browser | Supabase, Project Settings, API |
 | `LOOOT_TOKEN` | for paid runs | looot agent token. Server only (`lib/looot/server.ts` imports `server-only`). Without it, a run answers `missing_token` | Settings > Agent tokens in looot |
 | `LOOOT_API_URL` | no | Base URL of the looot API. Defaults to `https://api.looot.ai` | Leave unset |
+| `LOOOT_SEO_ALLOWED_EMAILS` | yes, one of the two | Comma separated emails that may use the workspace. Exact match, ignoring case. Server only | Your own address |
+| `LOOOT_SEO_ALLOWED_DOMAINS` | yes, one of the two | Comma separated domains. Matches the part after the `@` exactly, so `corp.io` does not match `sub.corp.io` | Your company domain |
+| `LOOOT_SEO_MAX_RUN_USD` | no | Ceiling for one run in dollars. A run whose cap is higher is refused with 422 `cap_above_limit`. Unset means the quote total is the only limit | Your budget |
 | `NEXT_PUBLIC_DEMO` | no | `1` runs on seeded data with no Supabase and no token | Set by `npm run demo` |
 
 Then, in the app:
@@ -93,7 +96,7 @@ The app uses Supabase Auth (email and password, or a magic link) and a Postgres 
    - `http://localhost:3000/auth/callback` for `npm run dev`
    - `https://<your-app-domain>/auth/callback` for the deployed app
    Set the Site URL to your deployed app URL.
-4. Put `LOOOT_TOKEN` in `.env.local`, then `npm run dev` and open http://localhost:3000. Create an account on the sign-in page with email and password (at least 8 characters), or request a magic link. Depending on your Supabase email settings you may have to confirm the address first.
+4. Put `LOOOT_TOKEN` and `LOOOT_SEO_ALLOWED_EMAILS=you@example.com` in `.env.local`. Without an allow-list the app shows a setup page and refuses everything. Then `npm run dev` and open http://localhost:3000. Create an account on the sign-in page with email and password (at least 8 characters), or request a magic link. Depending on your Supabase email settings you may have to confirm the address first.
 
 For a production build on your own machine, use `npm run build && npm start`.
 
@@ -108,12 +111,36 @@ For a production build on your own machine, use `npm run build && npm start`.
    | `NEXT_PUBLIC_SUPABASE_URL` | your Supabase project URL |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | your Supabase anon key |
    | `LOOOT_TOKEN` | your looot agent token |
+   | `LOOOT_SEO_ALLOWED_EMAILS` and/or `LOOOT_SEO_ALLOWED_DOMAINS` | who may use the workspace. Required |
 
 4. Deploy, then add `https://<your-vercel-domain>/auth/callback` to the Supabase redirect URLs and set the Site URL to the same domain.
+5. In Supabase, Authentication, Providers, Email, turn off "Allow new users to sign up" once your own account exists. If you leave sign-ups open, the allow-list is what keeps strangers out: a stranger can create a Supabase account, but every page, API route and server action answers 403 for an address that is not on the list. Turn sign-ups off as well, because it also stops strangers from using your project's email quota.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Floootai%2Flooot-seo&env=NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,LOOOT_TOKEN&envDescription=Supabase%20URL%20and%20anon%20key%2C%20plus%20a%20looot%20token&envLink=https%3A%2F%2Fgithub.com%2Floootai%2Flooot-seo%23run-the-web-app-with-sign-in)
 
 A run sends its calls after the response, inside one request that may last up to 300 seconds (`maxDuration` in `app/api/runs/route.ts`). Check that your Vercel plan allows that, or keep runs small. The repo has no scheduled workflow. Refresh is manual.
+
+## Securing a deployment
+
+Every page, route handler and server action that reads data, changes settings or spends checks the caller on the server. Three things must be true: the caller has a Supabase session, the address is confirmed, and it is on your allow-list.
+
+| Caller | Result |
+|---|---|
+| Not signed in | Pages redirect to `/login`. API routes answer 401 |
+| Signed in, not on the list | Pages redirect to `/not-authorised`. API routes and server actions answer 403 |
+| Signed in, no allow-list set on the server | Pages redirect to `/setup`. API routes answer 503. Nobody becomes admin by signing in first |
+| On the list | Open |
+| Demo mode (`NEXT_PUBLIC_DEMO=1`) | Open, seeded data, no token |
+
+Public: `/login`, `/setup`, `/not-authorised`, `/auth/callback` and static files. Everything else is admin: all pages, `/api/balance`, `/api/quotes`, `/api/runs` and `/api/runs/<id>`, and every server action. An unlisted path is admin.
+
+Environment variables: `LOOOT_SEO_ALLOWED_EMAILS`, `LOOOT_SEO_ALLOWED_DOMAINS` (at least one), and optionally `LOOOT_SEO_MAX_RUN_USD`.
+
+Spending rules. `LOOOT_TOKEN` is one token for the whole deployment, so every allowed user spends from the same balance. A run needs a stored quote. The caller can lower the cap and never raise it above the quote total or `LOOOT_SEO_MAX_RUN_USD`. Each user is limited to 10 runs and 30 quotes a minute (per server instance). The idempotency key is made once per quote, so a double click starts one run. The row level security in `supabase/migrations/0001_init.sql` keeps one allowed user's projects and runs from another's. `npm run test:rls` checks that on a throwaway local Postgres.
+
+The sign-in link handler follows a `next` parameter only when it is a same-origin relative path. This repo has no cron or webhook route.
+
+For a stronger setup, put the app behind a VPN or an identity-aware proxy (Cloudflare Access, Tailscale, Google IAP) so strangers cannot reach it at all, and keep the allow-list as the second lock.
 
 ## Screens
 

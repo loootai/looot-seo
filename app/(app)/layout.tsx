@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { currentAccess } from "@/lib/auth/guard";
 import { AppShell } from "@/components/shell/AppShell";
 import { Providers } from "@/components/shell/Providers";
 import { getStore } from "@/lib/data";
@@ -8,6 +10,10 @@ import type { Project } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const access = await currentAccess();
+  if (access.state === "setup") redirect("/setup");
+  if (access.state === "denied") redirect("/not-authorised");
+  if (access.state === "signed_out") redirect("/login");
   let projects: Project[] = [];
   let email: string | null = null;
   try {

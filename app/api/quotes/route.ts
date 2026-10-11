@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { guardApi, limitUser } from "@/lib/auth/guard";
 import { getStore } from "@/lib/data";
 import { IS_DEMO } from "@/lib/env";
 import { CATALOG, fallbackPrice, fallbackPrices, type PriceSource } from "@/lib/looot/catalog";
@@ -9,6 +10,10 @@ export const dynamic = "force-dynamic";
 
 /** Prices an action and stores the quote. Free: it reads prices and the balance, and runs nothing. */
 export async function POST(request: Request) {
+  const gate = await guardApi();
+  if (gate.response) return gate.response;
+  const limited = limitUser(gate.access, "quote", 30);
+  if (limited) return limited;
   let body: unknown;
   try {
     body = await request.json();

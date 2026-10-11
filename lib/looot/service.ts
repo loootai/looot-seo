@@ -72,6 +72,8 @@ export interface RunDeps {
   simulated: boolean;
   livePrice?: (operationId: string) => number | undefined;
   clock?: () => number;
+  /** Server-side ceiling for one run, in micros. A run whose cap would exceed it is refused. */
+  maxRunMicros?: number;
   /** Runs the work after the response is sent. Tests pass a function that awaits it. */
   schedule: (work: () => Promise<void>) => void;
   pollIntervalMs?: number;
@@ -104,6 +106,7 @@ export async function startRun(store: DataStore, body: unknown, deps: RunDeps): 
   const cap = typeof b.maxCostMicros === "number" ? Math.round(b.maxCostMicros) : typeof b.maxCost === "number" ? Math.round(b.maxCost * 1_000_000) : NaN;
   if (!Number.isFinite(cap) || cap <= 0) return err(422, "cap_required", "A run needs a cap above zero.");
   if (cap > selected.totalMicros) return err(422, "cap_above_quote", "The cap cannot be higher than the quote total.");
+  if (deps.maxRunMicros !== undefined && cap > deps.maxRunMicros) return err(422, "cap_above_limit", `The cap cannot be higher than the server limit of ${(deps.maxRunMicros / 1_000_000).toFixed(2)} dollars per run.`);
   if (!deps.simulated && !deps.client) return err(503, "missing_token", "LOOOT_TOKEN is not set on the server, so nothing can run.");
 
   if (!(await store.markQuoteUsed(quote.id))) return err(409, "quote_used", "This quote already started a run. Ask for a new one.");

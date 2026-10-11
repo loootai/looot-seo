@@ -1,17 +1,22 @@
 import { after, NextResponse } from "next/server";
+import { guardApi, limitUser } from "@/lib/auth/guard";
 import { getStore } from "@/lib/data";
 import { fakeRunner } from "@/lib/demo/fakeProvider";
 import { IS_DEMO } from "@/lib/env";
 import { CATALOG } from "@/lib/looot/catalog";
 import type { LoootRunner } from "@/lib/looot/client";
-import { livePrices, loootFromEnv } from "@/lib/looot/server";
+import { livePrices, loootFromEnv, maxRunMicros } from "@/lib/looot/server";
 import { startRun } from "@/lib/looot/service";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-/** Starts a run from a stored quote. The calls go out after the response, under the cap in the request. */
+/** Starts a run from a stored quote. The calls go out after the response, under a cap that is never above the quote total or the server ceiling. */
 export async function POST(request: Request) {
+  const gate = await guardApi();
+  if (gate.response) return gate.response;
+  const limited = limitUser(gate.access, "run", 10);
+  if (limited) return limited;
   let body: { quoteId?: unknown } & Record<string, unknown>;
   try {
     body = (await request.json()) as typeof body;
@@ -34,7 +39,7 @@ export async function POST(request: Request) {
         livePrice = (op) => live.get(op);
       }
     }
-    const result = await startRun(store, body, { client, simulated: IS_DEMO, livePrice, schedule: (work) => after(work) });
+    const result = await startRun(store, body, { client, maxRunMicros: maxRunMicros(), simulated: IS_DEMO, livePrice, schedule: (work) => after(work) });
     return NextResponse.json(result.body, { status: result.status });
   } catch (e) {
     console.error("looot-seo: run start failed", e);

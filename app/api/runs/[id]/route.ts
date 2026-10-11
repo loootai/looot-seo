@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { guardApi } from "@/lib/auth/guard";
 import { getStore } from "@/lib/data";
 import { cancelRun, readRun } from "@/lib/looot/service";
 
@@ -6,6 +7,8 @@ export const dynamic = "force-dynamic";
 
 /** Progress of one run. With ?items=1 it also lists every call of the run. */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const gate = await guardApi();
+  if (gate.response) return gate.response;
   const { id } = await params;
   const store = await getStore();
   const view = await readRun(store, id);
@@ -19,6 +22,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 /** { "action": "cancel" } stops a running run from sending new calls. Finished calls are kept. */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const gate = await guardApi();
+  if (gate.response) return gate.response;
   const { id } = await params;
   const body = (await request.json().catch(() => ({}))) as { action?: string };
   if (body.action !== "cancel") return NextResponse.json({ error: { code: "bad_request", message: "The only action is cancel." } }, { status: 400 });

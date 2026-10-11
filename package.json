@@ -1,6 +1,6 @@
 {
   "name": "looot-seo",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "description": "Self-hosted SEO workspace: rank tracking, keyword research, SERP snapshots, competitors and backlinks, with the price of every refresh shown before it runs. Next.js, Supabase and looot.",
   "license": "MIT",
   "private": true,
