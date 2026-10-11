@@ -1,5 +1,6 @@
 import "server-only";
 import type { DataStore } from "@/lib/data/store";
+import type { BudgetStatus } from "@/lib/looot/budget";
 import { IS_DEMO } from "@/lib/env";
 import { CATALOG, fallbackPrice } from "@/lib/looot/catalog";
 import { TOKEN_ENV, hasLoootToken, livePrices, readBalance } from "@/lib/looot/server";
@@ -38,6 +39,8 @@ export interface CostsData {
   prices: ReturnType<typeof priceRows>;
   spend: Record<string, number | string>[];
   runs: (Run & { projectName: string })[] | null;
+  /** Used, held and left against the daily and monthly budget. null when it could not be read. */
+  budget: BudgetStatus | null;
 }
 
 /** Everything the Costs screen shows, for one project or for all of them. */
@@ -86,6 +89,7 @@ export async function loadCosts(store: DataStore, projectId: string | null): Pro
     if (row) row[f] = Number(row[f]) + r.actual_cost_micros;
   }
   const real = (runs ?? []).filter((r) => !r.simulated);
+  const budget = await store.budgetStatus(new Date()).catch((e) => (console.error("looot-seo: budget failed", e), null));
   return {
     scope: scoped ? { projectId: scoped.id, name: scoped.name } : null,
     now,
@@ -101,5 +105,6 @@ export async function loadCosts(store: DataStore, projectId: string | null): Pro
     prices: priceRows(price),
     spend: days,
     runs: runs ? runs.map((r) => ({ ...r, projectName: names.get(r.project_id) ?? "" })) : null,
+    budget,
   };
 }

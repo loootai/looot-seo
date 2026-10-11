@@ -6,7 +6,9 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 for tool in initdb pg_ctl psql; do
   command -v "$tool" >/dev/null 2>&1 || { echo "SKIPPED: $tool not found. Install PostgreSQL to run the RLS test."; exit 0; }
 done
-dir="$(mktemp -d)"
+# Keep scratch files inside the repo folder, never in the system temp directory.
+mkdir -p "$root/.tmp"
+dir="$(mktemp -d "$root/.tmp/rls.XXXXXX")"
 port="${PGPORT_TEST:-55441}"
 cleanup() { pg_ctl -D "$dir/db" stop -m fast >/dev/null 2>&1 || true; rm -rf "$dir"; }
 trap cleanup EXIT
@@ -21,8 +23,8 @@ echo "$out"
 fail=0
 expect() { [[ "$out" == *"$1"* ]] || { echo "MISSING: $1"; fail=1; }; }
 expect "tables without forced rls|0"
-expect "public tables|14"
-expect "tables where A sees its row|14"
+expect "public tables|16"
+expect "tables where A sees its row|16"
 expect "duplicate idempotency key|refused"
 expect "actual cost above cap|refused"
 expect "cap above quote|refused"
@@ -32,8 +34,12 @@ expect "rows of A that B deleted|0"
 expect "B inserts with owner_id of A|refused"
 expect "B adds a keyword to a project of A|refused"
 expect "B adds an item to a run of A|refused"
+expect "B reads budget rows of A|0"
+expect "B releases or resizes a reservation of A|no effect"
+expect "B reserves against the budget of A|refused"
+expect "reservation of A still held|reserved"
 expect "rows anon sees|0"
 expect "rows A still has|4"
 [[ "$out" != *"FAIL"* ]] || fail=1
 [ "$fail" -eq 0 ] || { echo "RLS check FAILED"; exit 1; }
-echo "RLS check passed (14 checks)"
+echo "RLS check passed (16 tables)"

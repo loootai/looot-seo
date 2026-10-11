@@ -1,3 +1,5 @@
+import type { BudgetStatus, Reservation, ReserveRequest, ReserveResult } from "@/lib/looot/budget";
+import type { Micros } from "@/lib/money";
 import type {
   BacklinkSnapshot,
   CallItem,
@@ -94,4 +96,21 @@ export interface DataStore {
   listRuns(projectId: string | null): Promise<Run[]>;
   listRunItems(runId: string): Promise<RunItem[]>;
   updateRunItem(runId: string, itemKey: string, patch: RunItemPatch): Promise<void>;
+
+  /** Spent, held and left against the daily and monthly budget, as of `now` (UTC day and month). */
+  budgetStatus(now: Date): Promise<BudgetStatus>;
+  /** Sets the owner's budgets. The only way a budget changes; a run request cannot reach it. */
+  setBudgets(dailyMicros: Micros, monthlyMicros: Micros): Promise<void>;
+  /** Holds a run's cap against both budgets in one atomic step. Refused when spent + held + amount would pass either. */
+  reserveBudget(req: ReserveRequest): Promise<ReserveResult>;
+  /** The run ended: records its real cost and stops the hold. Only a held reservation changes. */
+  settleReservation(key: string, spentMicros: Micros, now: Date): Promise<void>;
+  /** The run failed or was refused and cost nothing: stops the hold. Only a held reservation changes. */
+  releaseReservation(key: string, now: Date): Promise<void>;
+  /** Some calls are still open: keeps holding `holdMicros` (never more than reserved), records `spentMicros`, restarts the soft expiry. */
+  resizeReservation(key: string, holdMicros: Micros, spentMicros: Micros, now: Date): Promise<void>;
+  /** The run made progress: moves the soft expiry on. */
+  touchReservation(key: string, now: Date): Promise<void>;
+  /** Held reservations whose soft expiry has passed, oldest first. */
+  listExpiredReservations(now: Date): Promise<Reservation[]>;
 }

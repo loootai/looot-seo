@@ -9,6 +9,7 @@ import { EmptyState, ErrorPanel, SectionHead, TableSkeleton } from "@/components
 import { Button } from "@/components/ui/button";
 import { Skeleton, Switch, Tag } from "@/components/ui/controls";
 import { Select } from "@/components/ui/input";
+import type { BudgetWindow } from "@/lib/looot/budget";
 import { fallbackPrice } from "@/lib/looot/catalog";
 import { formatMoney } from "@/lib/money";
 import type { ItemStatus, Run } from "@/lib/types";
@@ -102,6 +103,12 @@ export function CostsScreen({ data, state }: { data: CostsData; state: ForcedSta
         </section>
       </div>
 
+      {data.budget ? (
+        <Region className="px-4 py-4 md:px-6">
+          <BudgetPanel budget={data.budget} />
+        </Region>
+      ) : null}
+
       <Region>
         <PriceTable data={data} />
       </Region>
@@ -116,6 +123,41 @@ export function CostsScreen({ data, state }: { data: CostsData; state: ForcedSta
         )}
       </Region>
     </>
+  );
+}
+
+/** Used, held and left against the daily and monthly budget, with the refusal state when one is reached. */
+function BudgetPanel({ budget }: { budget: NonNullable<CostsData["budget"]> }) {
+  const reached = budget.daily.remainingMicros === 0 ? "daily" : budget.monthly.remainingMicros === 0 ? "monthly" : null;
+  const rows: [string, BudgetWindow][] = [
+    ["Today (UTC)", budget.daily],
+    ["This month (UTC)", budget.monthly],
+  ];
+  return (
+    <section aria-labelledby="budget-title">
+      <h2 id="budget-title" className="text-[14px] font-semibold leading-5">Budget</h2>
+      <p className="mt-1 max-w-3xl text-muted">
+        Before a run starts, its cap is held against both budgets. Held money counts until the run ends, then it settles to what the run really cost. A run that would pass either budget is refused and makes no call. Change the budgets in <a className="text-accent-text hover:underline" href="/settings#budget">Settings</a>.
+      </p>
+      {reached ? (
+        <p role="status" className="mt-2 flex items-center gap-1.5 font-medium text-neg">
+          <TriangleAlert className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden /> The {reached} budget is reached. New runs are refused until it resets or you raise it.
+        </p>
+      ) : null}
+      <dl className="mt-3 grid gap-x-10 gap-y-4 md:grid-cols-2">
+        {rows.map(([label, w]) => (
+          <div key={label}>
+            <dt className="label">{label}</dt>
+            <dd className="num mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
+              <span>{formatMoney(w.spentMicros)} used</span>
+              <span>{formatMoney(w.reservedMicros)} held</span>
+              <span className={cn(w.remainingMicros === 0 && "font-medium text-neg")}>{formatMoney(w.remainingMicros)} left</span>
+              <span className="text-muted">of {formatMoney(w.budgetMicros)}</span>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }
 
@@ -316,7 +358,7 @@ function RunItems({ runId }: { runId: string }) {
   const order = (i: ItemRow) => (i.status === "failed" || i.status === "timed_out" ? 0 : !i.parse_ok && i.status === "completed" ? 1 : i.status === "skipped_budget" ? 2 : 3);
   const sorted = [...items].sort((a, b) => order(a) - order(b));
   const shown = all ? sorted : sorted.slice(0, 8);
-  const tone = (s: ItemStatus) => (s === "completed" ? "accent" : s === "failed" || s === "timed_out" ? "neg" : s === "skipped_budget" ? "warn" : "neutral");
+  const tone = (s: ItemStatus) => (s === "completed" ? "accent" : s === "failed" ? "neg" : s === "timed_out" ? "warn" : s === "skipped_budget" ? "warn" : "neutral");
   return (
     <div className="border-l-2 border-accent/50 bg-bg/60 pl-3 md:ml-6">
       <table className="w-full table-fixed text-[12px]">
@@ -342,7 +384,7 @@ function RunItems({ runId }: { runId: string }) {
               <td className="num h-7 truncate px-2 text-muted max-md:hidden" title={i.operation_id}>{i.operation_id}</td>
               <td className="h-7 truncate px-2" title={JSON.stringify(i.input)}>{inputSummary(i.input)}</td>
               <td className="h-7 px-2">
-                <Tag tone={tone(i.status)}>{i.status === "skipped_budget" ? "not sent" : i.status === "timed_out" ? "timed out" : i.status}</Tag>
+                <Tag tone={tone(i.status)}>{i.status === "skipped_budget" ? "not sent" : i.status === "timed_out" ? "open, price held" : i.status}</Tag>
                 {i.error_code ? <span className="num ml-1.5 text-neg">{i.error_code}</span> : !i.parse_ok && i.status === "completed" ? <span className="ml-1.5 text-warn">unreadable</span> : null}
               </td>
               <td className="num h-7 px-2 text-right" title={i.status === "failed" ? "A failed call costs nothing" : undefined}>{formatMoney(i.actual_cost_micros)}</td>

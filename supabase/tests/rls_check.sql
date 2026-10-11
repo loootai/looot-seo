@@ -26,6 +26,8 @@ insert into domain_overviews (project_id, domain) values ('aaaaaaaa-0000-0000-00
 insert into backlink_snapshots (project_id, domain) values ('aaaaaaaa-0000-0000-0000-000000000001', 'a-site.example');
 insert into research_runs (project_id, country, language) values ('aaaaaaaa-0000-0000-0000-000000000001', 'US', 'en');
 insert into chart_notes (project_id, noted_on, body) values ('aaaaaaaa-0000-0000-0000-000000000001', '2026-10-08', 'note');
+insert into spend_budgets (daily_budget_micros) values (1000000);
+insert into budget_reservations (idempotency_key, amount_micros, expires_at, hard_expires_at) values ('key-1', 3000, now(), now());
 
 create temp table counts (who text, tbl text, n bigint);
 grant all on counts to authenticated, anon;
@@ -91,6 +93,20 @@ do $$ begin
 exception when insufficient_privilege then perform set_config('test.item', 'refused', false); end $$;
 select 'B adds an item to a run of A|' || current_setting('test.item', true);
 
+-- B cannot reserve against, release or resize A's budget, and cannot read it.
+select 'B reads budget rows of A|' || ((select count(*) from spend_budgets) + (select count(*) from budget_reservations));
+do $$ begin
+  perform public.release_reservation('11111111-1111-1111-1111-111111111111', 'key-1', now());
+  perform public.resize_reservation('11111111-1111-1111-1111-111111111111', 'key-1', 0, 0, now(), 900);
+  perform set_config('test.fn', 'no effect', false);
+end $$;
+select 'B releases or resizes a reservation of A|' || current_setting('test.fn', true);
+do $$ begin
+  perform public.reserve_budget('11111111-1111-1111-1111-111111111111', 'steal', 1, now(), now(), now(), 900, 86400);
+  raise notice 'FAIL reserve against another owner accepted';
+exception when insufficient_privilege then perform set_config('test.res', 'refused', false); end $$;
+select 'B reserves against the budget of A|' || current_setting('test.res', true);
+
 -- anon: no policy, so no rows.
 reset role;
 set role anon;
@@ -105,4 +121,5 @@ reset role;
 -- A still has everything after B's attempts.
 set role authenticated;
 select set_config('request.jwt.claim.sub', :'a', false) \gset
+select 'reservation of A still held|' || (select state from budget_reservations where idempotency_key = 'key-1');
 select 'rows A still has|' || (select count(*) from projects) + (select count(*) from keywords) + (select count(*) from runs) + (select count(*) from run_items);

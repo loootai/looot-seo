@@ -86,7 +86,7 @@ export async function executeRun(opts: ExecuteOptions): Promise<ExecuteResult> {
       if (!TERMINAL_STATUSES.has(run.status)) {
         // The charge is unknown, so the price stays reserved against the cap.
         keepReserved = true;
-        finish({ item, status: "timed_out", costMicros: 0, loootRunId: run.runId ?? null, errorCode: "timed_out", errorMessage: "looot did not finish this call in 90 seconds.", raw: null });
+        finish({ item, status: "timed_out", costMicros: 0, loootRunId: run.runId ?? null, errorCode: "timed_out", errorMessage: "looot did not finish this call in 90 seconds. Its price stays held against your budget until looot reports the result.", raw: null });
         return;
       }
       if (run.status === "completed") {
@@ -126,6 +126,8 @@ export async function executeRun(opts: ExecuteOptions): Promise<ExecuteResult> {
 
   const completed = outcomes.filter((o) => o.status === "completed").length;
   const cancelled = stopped === "cancelled";
-  const status = cancelled ? "cancelled" : completed === outcomes.length ? "completed" : completed === 0 ? "failed" : "partial";
+  // A call that is still open may yet be charged, so a run with one is never "failed".
+  const open = outcomes.some((o) => o.status === "timed_out");
+  const status = cancelled ? "cancelled" : completed === outcomes.length ? "completed" : completed === 0 && !open ? "failed" : "partial";
   return { outcomes, spentMicros: spent, cancelled, status };
 }

@@ -322,6 +322,7 @@ function RunBanner({ run, onCancel, onDismiss, onRetry }: { run: ActiveRun; onCa
             </span>
             <span className="num text-muted">
               {v.counts.completed} done{failed ? `, ${failed} failed` : ""}
+              {v.counts.open ? `, ${v.counts.open} still open (price held against your budget)` : ""}
               {v.counts.skipped ? `, ${v.counts.skipped} not sent` : ""}
               {v.counts.unreadable ? `, ${v.counts.unreadable} unreadable` : ""} · {run.simulated ? `${formatMoney(r.actual_cost_micros)} simulated, $0.00 charged` : `${formatMoney(r.actual_cost_micros)} spent`}
             </span>

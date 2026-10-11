@@ -106,6 +106,7 @@ describe("server actions", () => {
     removeCompetitor: ["c"],
     addChartNote: ["p", "2026-01-01", "note"],
     saveDefaults: [{ depth: 10, serp_operation: "serper-search" }],
+  saveBudgets: [5, 50],
     deleteMyData: ["delete my data"],
   };
   const exported = [...readFileSync(path.join(root, "app/actions.ts"), "utf8").matchAll(/export async function (\w+)/g)].map((m) => m[1]).filter((n) => n !== "signOut");

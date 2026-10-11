@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getStore } from "@/lib/data";
 import { IS_DEMO } from "@/lib/env";
+import { MAX_BUDGET_MICROS } from "@/lib/looot/budget";
 import { SERP_OPERATIONS } from "@/lib/looot/catalog";
+import { toMicros } from "@/lib/money";
 import { DEPTHS, locationNameFor } from "@/lib/markets";
 import { serverSupabase } from "@/lib/supabase/server";
 import type { Depth, UserDefaults } from "@/lib/types";
@@ -170,6 +172,23 @@ export async function saveDefaults(d: UserDefaults): Promise<ActionResult> {
     return { ok: true };
   } catch (e) {
     return fail(e, "The defaults could not be saved.");
+  }
+}
+
+/**
+ * Saves the daily and monthly budget, in dollars. This is the only place a budget changes: the run
+ * route reads the stored values and ignores anything in the request body.
+ */
+export async function saveBudgets(dailyUsd: number, monthlyUsd: number): Promise<ActionResult> {
+  const daily = toMicros(dailyUsd);
+  const monthly = toMicros(monthlyUsd);
+  if (![dailyUsd, monthlyUsd].every(Number.isFinite) || daily < 0 || monthly < 0 || daily > MAX_BUDGET_MICROS || monthly > MAX_BUDGET_MICROS) return { ok: false, error: "Enter amounts from 0 to 9999 dollars." };
+  try {
+    await (await getStore()).setBudgets(daily, monthly);
+    done();
+    return { ok: true };
+  } catch (e) {
+    return fail(e, "The budget could not be saved.");
   }
 }
 

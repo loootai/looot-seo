@@ -2,6 +2,16 @@
 
 Built from the GitHub release notes. Each version links to its release page.
 
+## 0.1.4 (2026-10-11)
+
+Spend limit across runs. Each run was capped, but nothing in the database limited what one user spent over a day or a month; only an in-memory rate limit and the token balance did.
+
+Each user now has a daily and a monthly budget (default $5 and $50). Before a run starts, its cap is reserved against both in one atomic database step, so two simultaneous runs cannot both pass. A run over budget is refused with `budget_reached` and makes no call. Reservations settle to the real cost, are released when a run fails, and stay held while a call is open. Stale holds are checked against looot and released after 24 hours. The sidebar, the Costs screen and Settings show used, held and left, and Settings edits the budgets.
+
+Migration: run `supabase/migrations/0002_period_budget.sql` (additive: `spend_budgets`, `budget_reservations`, six functions).
+
+[Release page](https://github.com/loootai/looot-seo/releases/tag/v0.1.4)
+
 ## 0.1.3 (2026-10-11)
 
 Security release. Earlier versions (up to v0.1.2) let any signed-in Supabase user use the workspace: read projects, change settings and start paid runs on your LOOOT_TOKEN. If your Supabase project allows public sign-ups (the default), a stranger could create an account and do this.

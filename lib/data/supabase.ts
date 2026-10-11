@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { DataStore, KeywordPatch, NewProject, NewRun, RunItemPatch, RunPatch, SnapshotRef } from "@/lib/data/store";
+import { budgetFromJson, dayStart, monthStart, RESERVATION_HARD_SECONDS, RESERVATION_SOFT_SECONDS, type BudgetStatus, type Reservation, type ReserveRequest, type ReserveResult } from "@/lib/looot/budget";
+import type { Micros } from "@/lib/money";
 import { findPosition } from "@/lib/seo/position";
 import type { BacklinkSnapshot, CallItem, ChartNote, Competitor, CompetitorOverlap, DomainOverview, Keyword, KeywordMetric, OrganicRow, Project, Quote, RankCheck, ResearchRun, Run, RunItem, SerpSnapshot, SnapshotLite, UserDefaults } from "@/lib/types";
 import { normalisePhrase } from "@/lib/utils";
@@ -244,5 +246,44 @@ export class SupabaseStore implements DataStore {
   }
   async updateRunItem(runId: string, itemKey: string, patch: RunItemPatch) {
     must(await this.db.from("run_items").update(patch).eq("run_id", runId).eq("item_key", itemKey).select("id"));
+  }
+  async #userId(): Promise<string> {
+    const id = (await this.db.auth.getUser()).data.user?.id;
+    if (!id) throw new DataError("Sign in first.", "401");
+    return id;
+  }
+  async budgetStatus(now: Date): Promise<BudgetStatus> {
+    const owner = await this.#userId();
+    return budgetFromJson(must(await this.db.rpc("budget_status", { p_owner: owner, p_day_start: dayStart(now).toISOString(), p_month_start: monthStart(now).toISOString() })));
+  }
+  async setBudgets(dailyMicros: Micros, monthlyMicros: Micros) {
+    const owner = await this.#userId();
+    must(await this.db.from("spend_budgets").upsert({ owner_id: owner, daily_budget_micros: dailyMicros, monthly_budget_micros: monthlyMicros, updated_at: this.now() }, { onConflict: "owner_id" }).select("owner_id"));
+  }
+  async reserveBudget(req: ReserveRequest): Promise<ReserveResult> {
+    const owner = await this.#userId();
+    const out = must(
+      await this.db.rpc("reserve_budget", { p_owner: owner, p_key: req.key, p_amount: req.amountMicros, p_now: req.now.toISOString(), p_day_start: dayStart(req.now).toISOString(), p_month_start: monthStart(req.now).toISOString(), p_soft_seconds: RESERVATION_SOFT_SECONDS, p_hard_seconds: RESERVATION_HARD_SECONDS }),
+    ) as { ok: boolean; reason?: "duplicate" | "budget"; scope?: "daily" | "monthly" };
+    const budget = budgetFromJson(out);
+    if (out.ok) return { ok: true, budget };
+    if (out.reason === "duplicate") return { ok: false, reason: "duplicate" };
+    return { ok: false, reason: "budget", scope: out.scope ?? "daily", budget };
+  }
+  async settleReservation(key: string, spentMicros: Micros, now: Date) {
+    must(await this.db.rpc("settle_reservation", { p_owner: await this.#userId(), p_key: key, p_spent: spentMicros, p_now: now.toISOString() }));
+  }
+  async releaseReservation(key: string, now: Date) {
+    must(await this.db.rpc("release_reservation", { p_owner: await this.#userId(), p_key: key, p_now: now.toISOString() }));
+  }
+  async resizeReservation(key: string, holdMicros: Micros, spentMicros: Micros, now: Date) {
+    must(await this.db.rpc("resize_reservation", { p_owner: await this.#userId(), p_key: key, p_hold: holdMicros, p_spent: spentMicros, p_now: now.toISOString(), p_soft_seconds: RESERVATION_SOFT_SECONDS }));
+  }
+  async touchReservation(key: string, now: Date) {
+    must(await this.db.rpc("touch_reservation", { p_owner: await this.#userId(), p_key: key, p_now: now.toISOString(), p_soft_seconds: RESERVATION_SOFT_SECONDS }));
+  }
+  async listExpiredReservations(now: Date): Promise<Reservation[]> {
+    const rows = must(await this.db.from("budget_reservations").select("*").eq("state", "reserved").lte("expires_at", now.toISOString()).order("created_at").limit(50)) as { idempotency_key: string; amount_micros: unknown; spent_micros: unknown; state: Reservation["state"]; created_at: string; expires_at: string; hard_expires_at: string }[];
+    return rows.map((r) => ({ key: r.idempotency_key, amountMicros: Number(r.amount_micros), spentMicros: Number(r.spent_micros), state: r.state, createdAt: r.created_at, expiresAt: r.expires_at, hardExpiresAt: r.hard_expires_at }));
   }
 }

@@ -4,6 +4,7 @@ import { AppShell } from "@/components/shell/AppShell";
 import { Providers } from "@/components/shell/Providers";
 import { getStore } from "@/lib/data";
 import { IS_DEMO } from "@/lib/env";
+import type { BudgetStatus } from "@/lib/looot/budget";
 import { hasLoootToken, readBalance } from "@/lib/looot/server";
 import type { Project } from "@/lib/types";
 
@@ -16,9 +17,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (access.state === "signed_out") redirect("/login");
   let projects: Project[] = [];
   let email: string | null = null;
+  let budget: BudgetStatus | null = null;
   try {
     const store = await getStore();
-    [projects, email] = await Promise.all([store.listProjects(), store.userEmail()]);
+    [projects, email, budget] = await Promise.all([store.listProjects(), store.userEmail(), store.budgetStatus(new Date()).catch(() => null)]);
   } catch (e) {
     // The page below shows its own error panel; the shell still renders.
     console.error("looot-seo: shell data failed", e);
@@ -26,7 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const balance = IS_DEMO ? null : await readBalance();
   return (
     <Providers demo={IS_DEMO}>
-      <AppShell projects={projects} demo={IS_DEMO} hasToken={!IS_DEMO && hasLoootToken()} balanceMicros={balance?.availableMicros ?? null} email={email}>
+      <AppShell projects={projects} demo={IS_DEMO} hasToken={!IS_DEMO && hasLoootToken()} balanceMicros={balance?.availableMicros ?? null} budget={budget} email={email}>
         {children}
       </AppShell>
     </Providers>

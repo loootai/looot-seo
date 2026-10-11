@@ -1,4 +1,6 @@
 import type { DataStore, KeywordPatch, NewProject, NewRun, RunItemPatch, RunPatch, SnapshotRef } from "@/lib/data/store";
+import { dayStart, DEFAULT_DAILY_BUDGET_MICROS, DEFAULT_MONTHLY_BUDGET_MICROS, monthStart, overBudget, RESERVATION_HARD_SECONDS, RESERVATION_SOFT_SECONDS, windowOf, type BudgetStatus, type Reservation, type ReserveRequest, type ReserveResult } from "@/lib/looot/budget";
+import type { Micros } from "@/lib/money";
 import { findPosition } from "@/lib/seo/position";
 import type { BacklinkSnapshot, CallItem, ChartNote, Competitor, CompetitorOverlap, DomainOverview, Keyword, KeywordMetric, Project, Quote, RankCheck, ResearchRun, Run, RunItem, SerpSnapshot, SnapshotLite, UserDefaults } from "@/lib/types";
 import { normalisePhrase } from "@/lib/utils";
@@ -35,6 +37,8 @@ export class MemoryStore implements DataStore {
   virtual: VirtualSnapshots | null = null;
   defaults: UserDefaults = { depth: 30, country: "US", language: "en", serp_operation: "serper-search" };
   email: string | null = "owner@example.com";
+  budgets = { daily: DEFAULT_DAILY_BUDGET_MICROS, monthly: DEFAULT_MONTHLY_BUDGET_MICROS };
+  reservations: Reservation[] = [];
   #seq = 0;
 
   constructor(private readonly fixedNow: string | null = null) {}
@@ -276,5 +280,50 @@ export class MemoryStore implements DataStore {
   async updateRunItem(runId: string, itemKey: string, patch: RunItemPatch) {
     const it = this.runItems.get(runId)?.find((i) => i.item_key === itemKey);
     if (it) Object.assign(it, patch);
+  }
+  /** Sums are computed with no await between reading and writing, so two callers can never both pass. */
+  #status(now: Date): BudgetStatus {
+    const day = dayStart(now).toISOString();
+    const month = monthStart(now).toISOString();
+    const reserved = this.reservations.filter((r) => r.state === "reserved").reduce((n, r) => n + r.amountMicros, 0);
+    const spent = (from: string) => this.reservations.filter((r) => r.createdAt >= from).reduce((n, r) => n + r.spentMicros, 0);
+    return { daily: windowOf(this.budgets.daily, spent(day), reserved), monthly: windowOf(this.budgets.monthly, spent(month), reserved) };
+  }
+  async budgetStatus(now: Date) {
+    return this.#status(now);
+  }
+  async setBudgets(dailyMicros: Micros, monthlyMicros: Micros) {
+    this.budgets = { daily: dailyMicros, monthly: monthlyMicros };
+  }
+  async reserveBudget(req: ReserveRequest): Promise<ReserveResult> {
+    const budget = this.#status(req.now);
+    if (this.reservations.some((r) => r.key === req.key)) return { ok: false, reason: "duplicate" };
+    const scope = overBudget({ dailyBudgetMicros: budget.daily.budgetMicros, monthlyBudgetMicros: budget.monthly.budgetMicros, spentDayMicros: budget.daily.spentMicros, spentMonthMicros: budget.monthly.spentMicros, reservedMicros: budget.daily.reservedMicros, amountMicros: req.amountMicros });
+    if (scope) return { ok: false, reason: "budget", scope, budget };
+    const at = req.now.getTime();
+    this.reservations.push({ key: req.key, amountMicros: req.amountMicros, spentMicros: 0, state: "reserved", createdAt: req.now.toISOString(), expiresAt: new Date(at + RESERVATION_SOFT_SECONDS * 1000).toISOString(), hardExpiresAt: new Date(at + RESERVATION_HARD_SECONDS * 1000).toISOString() });
+    return { ok: true, budget };
+  }
+  #held(key: string) {
+    return this.reservations.find((r) => r.key === key && r.state === "reserved");
+  }
+  async settleReservation(key: string, spentMicros: Micros, _now?: Date) {
+    const r = this.#held(key);
+    if (r) Object.assign(r, { state: "settled", spentMicros });
+  }
+  async releaseReservation(key: string, _now?: Date) {
+    const r = this.#held(key);
+    if (r) r.state = "released";
+  }
+  async resizeReservation(key: string, holdMicros: Micros, spentMicros: Micros, now: Date) {
+    const r = this.#held(key);
+    if (r) Object.assign(r, { amountMicros: Math.min(r.amountMicros, Math.max(0, holdMicros)), spentMicros, expiresAt: new Date(now.getTime() + RESERVATION_SOFT_SECONDS * 1000).toISOString() });
+  }
+  async touchReservation(key: string, now: Date) {
+    const r = this.#held(key);
+    if (r) r.expiresAt = new Date(now.getTime() + RESERVATION_SOFT_SECONDS * 1000).toISOString();
+  }
+  async listExpiredReservations(now: Date) {
+    return clone(this.reservations.filter((r) => r.state === "reserved" && r.expiresAt <= now.toISOString()).sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
   }
 }

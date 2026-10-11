@@ -3,13 +3,14 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { CircleCheck, CircleX, Loader2, LogOut } from "lucide-react";
-import { deleteMyData, saveDefaults, signOut } from "@/app/actions";
+import { deleteMyData, saveBudgets, saveDefaults, signOut } from "@/app/actions";
 import { PageHead } from "@/components/shell/PageHead";
 import { useToast } from "@/components/shell/toast";
 import { Button } from "@/components/ui/button";
 import { Tag } from "@/components/ui/controls";
 import { Field, Input, Select } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/overlays";
+import type { BudgetStatus } from "@/lib/looot/budget";
 import { COUNTRIES, DEPTHS, LANGUAGES } from "@/lib/markets";
 import { formatMoney } from "@/lib/money";
 import type { Depth, UserDefaults } from "@/lib/types";
@@ -18,6 +19,7 @@ import { cn } from "@/lib/utils";
 const SECTIONS = [
   { id: "account", label: "Account" },
   { id: "looot", label: "looot connection" },
+  { id: "budget", label: "Budget" },
   { id: "defaults", label: "Defaults" },
 ];
 
@@ -37,7 +39,7 @@ function Section({ id, title, sub, children }: { id: string; title: string; sub:
   );
 }
 
-export function SettingsScreen({ email, defaults, demo, hasToken, tokenEnv, failed, serpPrices }: { email: string | null; defaults: UserDefaults; demo: boolean; hasToken: boolean; tokenEnv: string; failed: boolean; serpPrices: Record<string, number> }) {
+export function SettingsScreen({ email, defaults, budget, demo, hasToken, tokenEnv, failed, serpPrices }: { email: string | null; defaults: UserDefaults; budget: BudgetStatus | null; demo: boolean; hasToken: boolean; tokenEnv: string; failed: boolean; serpPrices: Record<string, number> }) {
   const router = useRouter();
   const toast = useToast();
   const [d, setD] = React.useState(defaults);
@@ -49,6 +51,12 @@ export function SettingsScreen({ email, defaults, demo, hasToken, tokenEnv, fail
   const [deleting, setDeleting] = React.useState(false);
   const [deleteError, setDeleteError] = React.useState<string | null>(null);
   const dirty = JSON.stringify(d) !== JSON.stringify(defaults);
+  const [daily, setDaily] = React.useState(budget ? String(budget.daily.budgetMicros / 1_000_000) : "5");
+  const [monthly, setMonthly] = React.useState(budget ? String(budget.monthly.budgetMicros / 1_000_000) : "50");
+  const [budgetSaving, setBudgetSaving] = React.useState(false);
+  const [budgetError, setBudgetError] = React.useState<string | null>(null);
+  const inRange = (v: string) => v.trim() !== "" && Number.isFinite(Number(v)) && Number(v) >= 0 && Number(v) <= 9999;
+  const budgetDirty = budget ? Number(daily) * 1_000_000 !== budget.daily.budgetMicros || Number(monthly) * 1_000_000 !== budget.monthly.budgetMicros : true;
 
   const runTest = async () => {
     setTest({ state: "testing" });
@@ -127,6 +135,52 @@ export function SettingsScreen({ email, defaults, demo, hasToken, tokenEnv, fail
               )}
             </p>
           </div>
+        </Section>
+
+        <Section id="budget" title="Budget" sub="The most this workspace may spend on looot, per UTC day and per UTC month.">
+          <p className="mb-3 text-muted">
+            Before a paid run starts, the app holds the cap of the run against both budgets. A run that would pass either one is refused and makes no call. Held money counts until the run ends, then it settles to the real cost. Only you can change these numbers, here. A run request cannot.
+          </p>
+          {budget ? (
+            <dl className="mb-4 grid grid-cols-[130px_minmax(0,1fr)] gap-y-2">
+              {([["Today", budget.daily], ["This month", budget.monthly]] as const).map(([label, w]) => (
+                <React.Fragment key={label}>
+                  <dt className="label pt-0.5">{label}</dt>
+                  <dd className="num">{formatMoney(w.spentMicros)} used, {formatMoney(w.reservedMicros)} held, {formatMoney(w.remainingMicros)} left</dd>
+                </React.Fragment>
+              ))}
+            </dl>
+          ) : null}
+          <form
+            className="space-y-4"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!inRange(daily) || !inRange(monthly)) return setBudgetError("Enter amounts from 0 to 9999 dollars.");
+              setBudgetSaving(true);
+              const res = await saveBudgets(Number(daily), Number(monthly));
+              setBudgetSaving(false);
+              if (!res.ok) return setBudgetError(res.error);
+              setBudgetError(null);
+              toast.demoEdit();
+              toast.push("Budget saved.");
+              router.refresh();
+            }}
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Daily budget (USD)" htmlFor="budget-daily" hint="Resets at 00:00 UTC.">
+                <Input id="budget-daily" name="daily" type="number" inputMode="decimal" min={0} max={9999} step="0.5" value={daily} onChange={(e) => setDaily(e.target.value)} className="num" />
+              </Field>
+              <Field label="Monthly budget (USD)" htmlFor="budget-monthly" hint="Resets on the 1st, 00:00 UTC.">
+                <Input id="budget-monthly" name="monthly" type="number" inputMode="decimal" min={0} max={9999} step="1" value={monthly} onChange={(e) => setMonthly(e.target.value)} className="num" />
+              </Field>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button type="submit" variant="primary" disabled={!budgetDirty || budgetSaving} className="min-w-[116px]">
+                {budgetSaving ? <Loader2 className="animate-spin" strokeWidth={2} /> : null} Save budget
+              </Button>
+              {budgetError ? <p className="text-neg" role="alert">{budgetError}</p> : null}
+            </div>
+          </form>
         </Section>
 
         <Section id="defaults" title="Defaults" sub="What a new project starts with. Each project can change them later.">

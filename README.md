@@ -77,6 +77,8 @@ In Settings, the looot connection card has a test button. It calls Balance only,
 - The server stops a run when the next call would pass the cap. A $0.010 cap over 42 calls at $0.001 makes exactly 10 calls and skips 32.
 - A quote older than 10 minutes, or one that already started a run, is refused with 409. Two requests with the same idempotency key create one run.
 - Typical list prices. A rank check of 42 keywords to the top 30 is 42 x 3 pages x $0.001 = $0.126, or $0.172 with AI Overview on for 10 of them. Keyword ideas are $0.012 a call, backlink totals $0.024. The full table is in [What each feature costs](#what-each-feature-costs).
+- Period budget. Each user has a daily and a monthly budget (default $5 and $50, UTC day and month), stored in the `spend_budgets` table and changed only in Settings. Before a run starts, the app reserves the run's cap in one database transaction (`reserve_budget`, which locks the user's budget row). If spent + held + the cap would pass either budget, the server answers 422 `budget_reached` with the numbers and makes no call. Two simultaneous runs that together pass the budget cannot both start.
+- A reservation is money held for a run in progress. It settles to the real cost when the run ends and is released when the run fails or is refused. A call that is still open keeps its price held and is never written as failed at $0. Holds with no progress for 15 minutes are checked against `GET /v1/runs/{id}`. One that looot cannot confirm is released after 24 hours. Spend is recorded on the reservation, so deleting projects does not reset it. The sidebar and the Costs screen show used, held and left.
 - A failed call costs $0, and a failed item retried sends the same idempotency key, so it is not charged twice.
 
 ## Run the web app with sign-in
@@ -84,14 +86,14 @@ In Settings, the looot connection card has a test button. It calls Balance only,
 The app uses Supabase Auth (email and password, or a magic link) and a Postgres database. These steps use a hosted Supabase project, not a local Docker stack.
 
 1. Create a project in the Supabase dashboard. Copy the project URL and the anon key from Project Settings, API into `.env.local`. Under Authentication, keep the email provider on.
-2. Apply the schema. There is one migration, `supabase/migrations/0001_init.sql`. It creates 14 tables, each with row level security enabled and forced, and policies on `owner_id = auth.uid()`. Either link and push from a clone of this repo:
+2. Apply the schema. There are two migrations. `supabase/migrations/0001_init.sql` creates 14 tables, each with row level security enabled and forced, and policies on `owner_id = auth.uid()`. `0002_period_budget.sql` adds the spend budget and reservation tables and functions; it is required. Either link and push from a clone of this repo:
 
    ```bash
    supabase link --project-ref <your-project-ref>
    supabase db push
    ```
 
-   Or open the SQL editor in the Supabase dashboard, paste the whole file and run it.
+   Or open the SQL editor in the Supabase dashboard, paste each file in order and run it.
 3. Under Authentication, URL Configuration, add the redirect URLs. The app sends the confirmation and magic links to `<origin>/auth/callback` (`app/auth/callback/route.ts`).
    - `http://localhost:3000/auth/callback` for `npm run dev`
    - `https://<your-app-domain>/auth/callback` for the deployed app
@@ -138,7 +140,9 @@ Environment variables: `LOOOT_SEO_ALLOWED_EMAILS`, `LOOOT_SEO_ALLOWED_DOMAINS` (
 
 Spending rules. `LOOOT_TOKEN` is one token for the whole deployment, so every allowed user spends from the same balance. A run needs a stored quote. The caller can lower the cap and never raise it above the quote total or `LOOOT_SEO_MAX_RUN_USD`. Each user is limited to 10 runs and 30 quotes a minute (per server instance). The idempotency key is made once per quote, so a double click starts one run. The row level security in `supabase/migrations/0001_init.sql` keeps one allowed user's projects and runs from another's. `npm run test:rls` checks that on a throwaway local Postgres.
 
-The rate limits live in memory, so each server instance counts for itself. On a host that runs several instances (several Vercel function instances, several containers) a user gets the full 10 runs and 30 quotes a minute from each one. Treat them as a per-instance brake. The cap on one run is not in memory: it comes from the stored quote row and `LOOOT_SEO_MAX_RUN_USD`, and a quote can start only one run (the database marks it used). While a run executes, its running total is held in that one process, which is enough because one run is one process. What the app does not have is a total across runs. Nothing in the database limits what one user spends in a day or a month, so the only limits across runs are the per-instance rate limit and the balance on your looot token. Set `LOOOT_SEO_MAX_RUN_USD`, keep a small balance on the token, and rate limit at your proxy or CDN if the deployment runs several instances.
+The rate limits live in memory, so each server instance counts for itself. On a host that runs several instances a user gets the full 10 runs and 30 quotes a minute from each one. Treat them as a per-instance brake. The limits that hold across instances are in the database: the cap on one run (from the stored quote row and `LOOOT_SEO_MAX_RUN_USD`) and the daily and monthly budget in `spend_budgets`, reserved atomically before every run. The budget is per user, and a user can change their own budget in Settings, so the allow-list is what decides who may spend. The balance on your looot token is the final limit. Fund a dedicated token with only the amount you are willing to spend, and rate limit at your proxy or CDN if the deployment runs several instances.
+
+Apply `supabase/migrations/0002_period_budget.sql` after `0001_init.sql` when you upgrade. It only adds two tables and six functions.
 
 The sign-in link handler follows a `next` parameter only when it is a same-origin relative path. This repo has no cron or webhook route.
 

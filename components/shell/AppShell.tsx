@@ -13,6 +13,7 @@ import { DomainIcon } from "@/components/tables/parts";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/controls";
 import { Dialog, DialogContent, Drawer, DrawerContent, DrawerTrigger, Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger, Popover, PopoverContent, PopoverTrigger, Tip } from "@/components/ui/overlays";
+import type { BudgetStatus } from "@/lib/looot/budget";
 import { formatMoney } from "@/lib/money";
 import type { Project } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -59,12 +60,14 @@ export interface ShellProps {
   demo: boolean;
   hasToken: boolean;
   balanceMicros: number | null;
+  /** Used, held and left against the daily and monthly budget. null when it could not be read. */
+  budget: BudgetStatus | null;
   email: string | null;
   children: React.ReactNode;
 }
 
 /** The frame around every signed-in screen: sidebar (drawer below 1024px), top bar, command palette and keyboard shortcuts. */
-export function AppShell({ projects, demo, hasToken, balanceMicros, email, children }: ShellProps) {
+export function AppShell({ projects, demo, hasToken, balanceMicros, budget, email, children }: ShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams<{ projectId?: string }>();
@@ -248,6 +251,18 @@ export function AppShell({ projects, demo, hasToken, balanceMicros, email, child
               </Link>
             )}
           </div>
+          {budget ? (
+            <Link href={base ? `${base}/costs` : "/costs"} onClick={closeDrawer} className={cn("rail-text mb-1 block rounded-ctl bg-white/5 p-2.5 hover:bg-white/10", ring)} aria-label={`Budget. Today ${formatMoney(budget.daily.spentMicros)} used, ${formatMoney(budget.daily.reservedMicros)} held, ${formatMoney(budget.daily.remainingMicros)} left of ${formatMoney(budget.daily.budgetMicros)}. Opens Costs.`}>
+              <p className="text-[11px] text-[var(--sidebar-muted)]">Budget, today (UTC)</p>
+              <p className={cn("num mt-0.5 text-[13px] font-medium", budget.daily.remainingMicros === 0 && "text-[#f0c36a]")}>{formatMoney(budget.daily.remainingMicros)} left</p>
+              <p className="num mt-1 text-[11px] leading-4 text-[var(--sidebar-muted)]">
+                {formatMoney(budget.daily.spentMicros)} used, {formatMoney(budget.daily.reservedMicros)} held, of {formatMoney(budget.daily.budgetMicros)}
+              </p>
+              <p className="num text-[11px] leading-4 text-[var(--sidebar-muted)]">
+                Month {formatMoney(budget.monthly.remainingMicros)} left of {formatMoney(budget.monthly.budgetMicros)}
+              </p>
+            </Link>
+          ) : null}
           {demo ? (
             <span className="rail-text mb-1 inline-flex h-6 items-center rounded-full border border-warn/60 bg-warn/10 px-2 text-[11px] font-medium text-[#f0c36a]" title="This workspace runs on seeded data. Nothing is charged and no request is sent.">
               Demo data
