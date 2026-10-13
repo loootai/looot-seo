@@ -13,7 +13,10 @@ export interface BacklinkSummary {
 
 /** DataForSEO backlinks summary: totals for one domain. The rank arrives on a 0 to 1,000 scale and is shown as 0 to 100. */
 export function parse(raw: unknown): Parsed<BacklinkSummary> {
-  const p = dfsPayload(raw);
+  const top = dfsPayload(raw);
+  // The live looot response carries the totals in items[0]; the DataForSEO docs put them at the top.
+  const first = Array.isArray(top?.items) ? top.items[0] : undefined;
+  const p = first && typeof first === "object" ? first : top;
   const r = Body.safeParse(p);
   if (!r.success || (r.data.backlinks === undefined && r.data.referring_domains === undefined)) return fail("no backlink totals");
   const rank = r.data.rank;

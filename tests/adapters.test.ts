@@ -109,6 +109,12 @@ describe("adapters, one per pinned operation", () => {
     expect(data(OP.blSummary)).toEqual({ backlinks: 3184, referring_domains: 412, domain_rank: 38, spam_score: 3, broken_backlinks: 27 });
   });
 
+  it("backlinks summary: reads the live looot shape, where the totals sit in result.items[0]", () => {
+    const live = { result: { items: [{ target: "looot.ai", rank: 211, backlinks: 1513, referring_domains: 24, backlinks_spam_score: 7 }] } };
+    const r = parseWith(OP.blSummary, live);
+    expect(r.ok && r.data).toEqual({ backlinks: 1513, referring_domains: 24, domain_rank: 21, spam_score: 7, broken_backlinks: null });
+  });
+
   it("referring domains: rank scaled, first seen as a day, dofollow share from the nofollow count", () => {
     const d = data(OP.blDomains);
     expect(d[0]).toEqual({ domain: "homebaristaforum.net", rank: 69, backlinks: 40, first_seen: "2025-08-21", dofollow_share: 0.45 });

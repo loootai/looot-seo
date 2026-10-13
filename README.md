@@ -2,7 +2,41 @@
 
 A self-hosted SEO workspace that shows the price of every refresh before it runs: rank tracking, keyword research, SERP snapshots, competitors and backlinks on Next.js, Supabase and one [looot](https://looot.ai) token.
 
-![looot-seo: the project overview and the quote dialog](docs/hero.png)
+![looot-seo: a live run on 2026-10-14, looot.ai tracked against Clay, Apollo.io, ZoomInfo, Apify, Firecrawl and Exa, with the quote dialog](docs/media/banner.png)
+
+Logos and names belong to their owners. Public data from a live run on 2026-10-14. No affiliation.
+
+<table>
+<tr>
+<td width="50%"><img src="docs/media/card-rankings.png" alt="A rank check with the price on the button: 11 keywords, top 30, volume and difficulty"></td>
+<td width="50%"><img src="docs/media/card-quote.png" alt="Quote, cap, then run: 33 calls at $0.001, total $0.033"></td>
+</tr>
+<tr>
+<td><img src="docs/media/card-competitors.png" alt="Who is ahead on each keyword: firecrawl.dev holds 29.4% share of voice"></td>
+<td><img src="docs/media/card-serp.png" alt="A stored SERP for web scraping api: ScrapingBee, Firecrawl and ScraperAPI lead"></td>
+</tr>
+<tr>
+<td colspan="2"><img src="docs/media/card-costs.png" alt="Every run, call and cent: quoted, cap and actual cost per run"></td>
+</tr>
+</table>
+
+<img src="docs/media/demo.gif" alt="A 25 second walkthrough: rankings, the quote dialog, competitors, a stored SERP and costs" width="760">
+
+[Watch the walkthrough as MP4](docs/media/demo.mp4)
+
+## Live run, 2026-10-14
+
+looot.ai tracked against its own market. The images above come from this run, not from the seeded demo, so they carry no "Demo data" label.
+
+- Project looot.ai, US, English, top 30. Six competitors: clay.com, apollo.io, zoominfo.com, apify.com, firecrawl.dev and exa.ai.
+- 11 keywords, among them "clay alternative", "enrichment api", "web scraping api", "email finder api", "b2b data api" and "looot ai".
+- 4 paid runs, 62 calls, $0.129 charged. Two rank checks (24 and 33 calls, $0.057), keyword metrics (2 calls, $0.024) and backlinks (3 calls, $0.048).
+- looot.ai ranks 2 for "looot ai" and sits outside the top 30 for the other 10 keywords. It is a young domain, so that is the honest result.
+- Ahead of it on the tracked keywords. firecrawl.dev has 29.4% share of voice and apify.com 14.1%. firecrawl.dev is 2nd for "web scraping api", apify.com is 3rd for "b2b data api".
+- Misses. The backlinks run charged $0.048 for 2 of 3 calls. The new and lost links call failed with a provider error and cost $0. The totals call returned data in `result.items[0]`, which the parser did not read, so totals showed as unavailable and the call was still charged. The parser now reads that shape, with a test. The fix was not re-run live.
+- Keyword metrics came back for 9 of 11 phrases. "looot ai" and "one api key for business data" have no volume.
+
+The run used a local build with an in-memory store, because the real app needs a Supabase project. Nothing else about the run path differed: the quote, the cap and the looot client are the ones in this repo.
 
 ## What it replaces
 
@@ -239,13 +273,13 @@ How to file an issue. Open one at https://github.com/loootai/looot-seo/issues wi
 
 Tested, with looot mocked:
 
-- `npm test`: 107 unit tests. The client, the cap guard (a $0.010 cap over 42 calls at $0.001 makes exactly 10 calls and skips 32), the quote and run routes, the position rule, visibility, and one adapter per pinned operation.
+- `npm test`: 210 unit tests. The client, the cap guard (a $0.010 cap over 42 calls at $0.001 makes exactly 10 calls and skips 32), the quote and run routes, the position rule, visibility, and one adapter per pinned operation.
 - `npm run test:rls`: applies the migration to a throwaway local Postgres and checks, with two users, that neither can read, change or attach rows to the other's data, and that `anon` sees nothing. It needs `initdb`, `pg_ctl` and `psql`, and skips with a note when they are missing.
 - `tsc --noEmit`, `eslint .`, `next build`, and the bundle grep above.
 
 Not tested. If a parser fails on a real response, open an issue with the raw response body (secrets removed).
 
-- No paid looot run was made during the build. All 14 operations show `unverified` in the public catalog. The adapter fixtures in `tests/fixtures/` are written from each provider's public documentation, not from a live run. If a provider returns a shape an adapter cannot read, the app stores the raw body, shows "The provider returned a shape this version cannot read" and still records the cost.
+- One live run was made on 2026-10-14 (see Live run above) for the rank check, keyword metrics and backlink operations. The other adapter fixtures in `tests/fixtures/` are written from each provider's public documentation, not from a live run. If a provider returns a shape an adapter cannot read, the app stores the raw body, shows "The provider returned a shape this version cannot read" and still records the cost.
 - The Supabase data layer is type checked and its schema is covered by the RLS test, but the app has not been run end to end against a hosted Supabase project.
 - The balance call uses `GET /v1/balance`, the path the public looot n8n node uses. The body's field names are read defensively. If they do not match, the balance chip stays hidden and nothing else changes.
 - Whether `serper-search` returns more than 10 organic results for a larger `num`. The maths stays at 10 per call until a real run shows otherwise.
@@ -274,7 +308,7 @@ npm run typecheck && npm run lint
 git config core.hooksPath .githooks   # run the leak scan before each commit
 ```
 
-Dependencies are pinned to exact versions. `scripts/screenshots.mjs` retakes every image in `docs/screenshots` from a running demo with headless Chrome, and `docs/hero.html` is the source of the image at the top.
+Dependencies are pinned to exact versions. `scripts/screenshots.mjs` retakes every image in `docs/screenshots` from a running demo with headless Chrome, and the banner and cards in `docs/media` come from a live run.
 
 Layout: `app/` routes, `components/` UI, `lib/looot/` the client, quote and run path with one adapter per operation, `lib/seo/` position and visibility rules, `lib/data/` the store interface with a Supabase and an in-memory version, `lib/demo/` the seeded data, `supabase/migrations/` the schema.
 
